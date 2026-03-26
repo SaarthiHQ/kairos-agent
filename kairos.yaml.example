@@ -1,0 +1,18 @@
+slack:
+  webhook_url: "${SLACK_WEBHOOK_URL}"
+
+pagerduty:
+  webhook_secret: "your-pagerduty-webhook-secret"
+
+log_sources:
+  - type: file
+    path: "/var/log/app/*.log"
+
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+  # Set ANTHROPIC_API_KEY environment variable
+
+context:
+  time_window_minutes: 15
+  max_log_lines: 500

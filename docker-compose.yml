@@ -1,0 +1,11 @@
+services:
+  kairos-agent:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./kairos.yaml:/app/kairos.yaml:ro
+      - ./sample_logs:/var/log/app:ro
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    restart: unless-stopped

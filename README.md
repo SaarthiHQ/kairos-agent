@@ -112,6 +112,29 @@ kairos-agent --config kairos.yaml --port 8000
 | `config.py`           | Load and validate `kairos.yaml`                         |
 | `cli.py`              | CLI entry point with argument parsing                   |
 
+## How Log Context Works
+
+kairos reads log files matching your `log_sources[].path` glob patterns (e.g., `/var/log/app/*.log`). It recognizes these timestamp formats:
+
+- **ISO 8601** — `2026-03-26T14:03:00Z`
+- **Common log format** — `26/Mar/2026:14:03:00 +0000`
+- **Syslog** — `Mar 26 14:03:00`
+- **Simple datetime** — `2026-03-26 14:03:00`
+
+Lines without a recognized timestamp are included but ranked lower.
+
+**Filtering:** Only log lines within the configured time window (default: 15 minutes before the alert) are kept.
+
+**Ranking:** Lines are scored by relevance — keywords like `ERROR`, `FATAL`, `CRITICAL`, `PANIC`, `EXCEPTION` score highest, followed by lines mentioning the alerting service name. The top lines (default: 500) are sent to Claude for summarization.
+
+Tune these in `kairos.yaml`:
+
+```yaml
+context:
+  time_window_minutes: 15   # how far back to look
+  max_log_lines: 500         # max lines sent to the LLM
+```
+
 ## Configuration Reference
 
 | Key                        | Required | Default                    | Description                          |

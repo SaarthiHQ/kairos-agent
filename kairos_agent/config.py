@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+logger = logging.getLogger("kairos_agent")
 
 
 @dataclass
@@ -22,10 +25,22 @@ class PagerDutyConfig:
 
 @dataclass
 class LogSource:
-    type: str  # "file", "datadog", "loki", "http"
+    type: str  # "file", "datadog", "loki", "newrelic", "http"
+    name: str = ""  # Optional name for service catalog references
     path: str = ""
     credentials: dict[str, str] = field(default_factory=dict)
     options: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
+class ServiceConfig:
+    """Declaration of a service in the catalog."""
+
+    name: str
+    depends_on: list[str] = field(default_factory=list)
+    owners: list[str] = field(default_factory=list)
+    sources: list[str] = field(default_factory=list)  # Source references
+    tier: str = "standard"  # "critical", "standard", "best-effort"
 
 
 @dataclass
@@ -48,6 +63,7 @@ class KairosConfig:
     log_sources: list[LogSource]
     llm: LLMConfig = field(default_factory=LLMConfig)
     context: ContextConfig = field(default_factory=ContextConfig)
+    services: dict[str, ServiceConfig] = field(default_factory=dict)
 
 
 def _resolve_env_vars(value: str) -> str:
@@ -102,6 +118,7 @@ def load_config(path: str | Path = "kairos.yaml") -> KairosConfig:
     log_sources = [
         LogSource(
             type=ls.get("type", "file"),
+            name=ls.get("name", ""),
             path=ls.get("path", ""),
             credentials=ls.get("credentials", {}),
             options=ls.get("options", {}),
@@ -119,7 +136,27 @@ def load_config(path: str | Path = "kairos.yaml") -> KairosConfig:
     context = ContextConfig(
         time_window_minutes=ctx_raw.get("time_window_minutes", 15),
         max_log_lines=ctx_raw.get("max_log_lines", 500),
+        max_context_tokens=ctx_raw.get("max_context_tokens", 3000),
     )
+
+    # Parse optional service catalog
+    services_raw = raw.get("services", {})
+    services: dict[str, ServiceConfig] = {}
+    for svc_name, svc_data in services_raw.items():
+        services[svc_name] = ServiceConfig(
+            name=svc_name,
+            depends_on=svc_data.get("depends_on", []),
+            owners=svc_data.get("owners", []),
+            sources=svc_data.get("sources", []),
+            tier=svc_data.get("tier", "standard"),
+        )
+        # Warn about unresolvable dependency references
+        for dep in services[svc_name].depends_on:
+            if dep not in services_raw:
+                logger.warning(
+                    "Service '%s' depends on '%s' which is not in the catalog",
+                    svc_name, dep,
+                )
 
     return KairosConfig(
         slack=SlackConfig(webhook_url=slack_raw["webhook_url"]),
@@ -127,4 +164,5 @@ def load_config(path: str | Path = "kairos.yaml") -> KairosConfig:
         log_sources=log_sources,
         llm=llm,
         context=context,
+        services=services,
     )

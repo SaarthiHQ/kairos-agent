@@ -74,13 +74,46 @@ def build_user_prompt(alert_info: dict, context: LogContext) -> str:
 {gaps_block}
 """
 
-    # Prompt repetition: repeat the key identifiers (service, title) after the
-    # log block so the model has them in its attention window when generating.
-    # Research shows this improves accuracy in 47/70 benchmarks with 0 regressions.
     title = alert_info.get('title', 'N/A')
     service = context.service_name
     urgency = alert_info.get('urgency', 'N/A')
 
+    # Service context section (if catalog data is available)
+    service_section = ""
+    if context.service_tier != "standard" or context.service_owners or context.dependency_services:
+        deps_str = ", ".join(context.dependency_services) if context.dependency_services else "(none)"
+        owners_str = ", ".join(context.service_owners) if context.service_owners else "(unspecified)"
+        service_section = f"""
+## Service Context
+- **Tier**: {context.service_tier}
+- **Owners**: {owners_str}
+- **Dependencies**: {deps_str}
+- **Alert type**: {context.alert_type}
+"""
+
+    # Dependency log section (separate from direct logs for clear provenance)
+    dep_section = ""
+    if context.dependency_log_lines:
+        dep_block = "\n".join(context.dependency_log_lines)
+        dep_section = f"""
+## Dependency Log Lines
+These lines are from upstream/downstream dependencies, not the alerting service itself:
+```
+{dep_block}
+```
+"""
+
+    # Alert-type-specific guidance for the task instruction
+    alert_guidance = ""
+    if context.alert_type == "latency":
+        alert_guidance = " Focus on latency patterns, timeouts, and slow operations."
+    elif context.alert_type == "availability":
+        alert_guidance = " Focus on connectivity, health checks, and resource exhaustion."
+    elif context.alert_type == "error_rate":
+        alert_guidance = " Focus on error patterns, exceptions, and stack traces."
+
+    # Prompt repetition: repeat key identifiers after the log block so the model
+    # has them in its attention window when generating (Leviathan et al., 2025).
     return f"""\
 ## Incident Alert
 - **Title**: {title}
@@ -88,7 +121,7 @@ def build_user_prompt(alert_info: dict, context: LogContext) -> str:
 - **Urgency**: {urgency}
 - **Triggered at**: {alert_info.get('triggered_at', 'N/A')}
 - **PagerDuty URL**: {alert_info.get('html_url', 'N/A')}
-
+{service_section}
 ## Log Context
 - **Time window**: {context.time_window_start} to {context.time_window_end}
 - **Lines scanned**: {context.total_lines_scanned}
@@ -99,9 +132,9 @@ def build_user_prompt(alert_info: dict, context: LogContext) -> str:
 ```
 {log_block}
 ```
-
+{dep_section}
 ## Task
-Produce a triage summary for the incident "{title}" affecting **{service}** (urgency: {urgency}). \
+Produce a triage summary for the incident "{title}" affecting **{service}** (urgency: {urgency}).{alert_guidance} \
 Focus on the evidence above and assess root cause.\
 """
 

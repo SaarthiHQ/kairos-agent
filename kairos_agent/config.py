@@ -53,7 +53,7 @@ class LLMConfig:
 class ContextConfig:
     time_window_minutes: int = 15
     max_log_lines: int = 500
-    max_context_tokens: int = 3000  # Token budget for log lines in the prompt
+    max_context_tokens: int = 10000  # Token budget for log lines in the prompt
 
 
 @dataclass

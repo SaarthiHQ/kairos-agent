@@ -1,0 +1,39 @@
+# kairos test configuration for Saarthi (simulated, no external APIs needed)
+# Uses local sample logs to validate the pipeline
+
+slack:
+  webhook_url: "${SLACK_WEBHOOK_URL}"
+
+pagerduty:
+  webhook_secret: "test-secret"
+
+log_sources:
+  - name: clinical-logs
+    type: file
+    path: "sample_logs/saarthi-clinical.log"
+
+  - name: flask-logs
+    type: file
+    path: "sample_logs/saarthi-flask.log"
+
+services:
+  saarthi-clinical:
+    depends_on: [saarthi-flask]
+    owners: [ramanan]
+    sources: [clinical-logs]
+    tier: critical
+
+  saarthi-flask:
+    depends_on: [saarthi-clinical]
+    owners: [ramanan]
+    sources: [flask-logs]
+    tier: critical
+
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+
+context:
+  time_window_minutes: 15
+  max_log_lines: 500
+  max_context_tokens: 3000

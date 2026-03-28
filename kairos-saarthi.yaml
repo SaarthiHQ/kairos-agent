@@ -1,0 +1,46 @@
+# kairos configuration for Saarthi
+# Copy to kairos.yaml and fill in credentials
+
+slack:
+  webhook_url: "${SLACK_WEBHOOK_URL}"  # Your #saarthi-alerts webhook
+
+pagerduty:
+  webhook_secret: "saarthi-test-secret"  # For simulated testing
+
+log_sources:
+  - name: newrelic-saarthi
+    type: newrelic
+    credentials:
+      api_key: "${NEW_RELIC_API_KEY}"
+    options:
+      account_id: "7688224"
+      region: "eu"  # Saarthi uses EU data center (collector.eu01.nr-data.net)
+      query: "SELECT timestamp, message, level, service.name, error.class, error.message, request.uri, duration FROM Log WHERE service.name = '{service_name}'"
+
+services:
+  saarthi-clinical:
+    depends_on: [saarthi-flask]
+    owners: [ramanan]
+    sources: [newrelic-saarthi]
+    tier: critical
+
+  saarthi-flask:
+    depends_on: [saarthi-clinical]
+    owners: [ramanan]
+    sources: [newrelic-saarthi]
+    tier: critical
+
+  saarthi-clinic-production:
+    depends_on: [saarthi-clinical]
+    owners: [ramanan]
+    sources: [newrelic-saarthi]
+    tier: standard
+
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+
+context:
+  time_window_minutes: 15
+  max_log_lines: 500
+  max_context_tokens: 3000

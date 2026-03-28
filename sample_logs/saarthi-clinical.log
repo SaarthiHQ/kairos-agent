@@ -1,0 +1,16 @@
+2026-03-29T10:00:01Z [INFO] saarthi-clinical: Request POST /api/v2/documents/upload - 200 (245ms)
+2026-03-29T10:00:15Z [INFO] saarthi-clinical: Document queued for processing doc_id=doc_8291 patient_id=pat_1042
+2026-03-29T10:00:16Z [INFO] saarthi-clinical: Extraction started provider=gemini model=gemini-2.5-flash doc_id=doc_8291
+2026-03-29T10:00:22Z [WARN] saarthi-clinical: Extraction slow >5s provider=gemini doc_id=doc_8291 duration=6102ms
+2026-03-29T10:00:45Z [ERROR] saarthi-clinical: Extraction failed provider=gemini doc_id=doc_8291 error="RESOURCE_EXHAUSTED: Quota exceeded for gemini-2.5-flash"
+2026-03-29T10:00:46Z [INFO] saarthi-clinical: Fallback to provider=claude-sonnet doc_id=doc_8291
+2026-03-29T10:00:52Z [ERROR] saarthi-clinical: Extraction failed provider=claude-sonnet doc_id=doc_8291 error="529 API overloaded"
+2026-03-29T10:00:53Z [WARN] saarthi-clinical: All extraction providers failed for doc_id=doc_8291, requeueing with backoff=30s
+2026-03-29T10:01:00Z [INFO] saarthi-clinical: Request POST /api/v2/documents/upload - 200 (189ms)
+2026-03-29T10:01:02Z [INFO] saarthi-clinical: Document queued for processing doc_id=doc_8292 patient_id=pat_2087
+2026-03-29T10:01:03Z [ERROR] saarthi-clinical: Queue processing failed queue=document-processing-prod error="D1 database busy: too many concurrent connections"
+2026-03-29T10:01:05Z [ERROR] saarthi-clinical: D1 query failed table=extraction_results error="database is locked" duration=15023ms
+2026-03-29T10:01:10Z [CRITICAL] saarthi-clinical: Document processing pipeline stalled - 47 documents stuck in queue for >5 minutes
+2026-03-29T10:01:15Z [ERROR] saarthi-clinical: WorkerSlowRequest uri=/api/v2/timeline/pat_1042 duration=8200ms threshold=5000ms
+2026-03-29T10:01:20Z [WARN] saarthi-clinical: R2 upload timeout bucket=saarthi-documents-prod key=doc_8291/extracted.json duration=12000ms
+2026-03-29T10:01:25Z [ERROR] saarthi-clinical: Extraction result offload failed to R2 doc_id=doc_8291 error="R2 PUT timeout after 15s"

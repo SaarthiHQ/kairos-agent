@@ -1,0 +1,9 @@
+2026-03-29T10:00:00Z [INFO] saarthi-flask: WhatsApp message received from +91XXXXXXXX conversation=conv_4821
+2026-03-29T10:00:01Z [INFO] saarthi-flask: Intent detected: document_upload conversation=conv_4821
+2026-03-29T10:00:02Z [INFO] saarthi-flask: Forwarding document to saarthi-clinical api_url=https://process.saarthihq.com/api/v2/documents/upload
+2026-03-29T10:00:03Z [INFO] saarthi-flask: Upload response status=200 doc_id=doc_8291
+2026-03-29T10:01:30Z [WARN] saarthi-flask: Callback from saarthi-clinical delayed >60s doc_id=doc_8291 expected_callback_at=2026-03-29T10:00:30Z
+2026-03-29T10:02:00Z [ERROR] saarthi-flask: Request to saarthi-clinical failed uri=/api/v2/processing/status/doc_8291 status=504 error="Gateway Timeout"
+2026-03-29T10:02:01Z [WARN] saarthi-flask: Patient waiting for extraction result >2min conversation=conv_4821 doc_id=doc_8291
+2026-03-29T10:02:30Z [ERROR] saarthi-flask: Retry failed for saarthi-clinical status check attempt=2 status=504
+2026-03-29T10:03:00Z [ERROR] saarthi-flask: Sending fallback message to patient "We're processing your document, it's taking longer than usual" conversation=conv_4821

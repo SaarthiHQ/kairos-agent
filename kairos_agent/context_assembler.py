@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 
+from kairos_agent.compressor import compress_lines
 from kairos_agent.config import ContextConfig, LogSource, ServiceConfig
 from kairos_agent.sources import (
     QualityAssessment,
@@ -260,7 +261,10 @@ def _fetch_and_score(
             ))
             sources_checked.append(fetched.source_name)
 
-            for line in fetched.lines:
+            # Level 1 compression: dedup and collapse before scoring
+            compressed = compress_lines(fetched.lines)
+
+            for line in compressed:
                 ts = parse_timestamp(line)
                 in_window = ts is None or (window_start <= ts <= window_end)
                 if in_window:

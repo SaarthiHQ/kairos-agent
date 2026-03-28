@@ -58,9 +58,18 @@ def build_user_prompt(alert_info: dict, context: LogContext) -> str:
     - Alert details first (situation — primacy position)
     - Quality assessment next (so the model calibrates confidence early)
     - Log lines in the middle (evidence)
-    - Key context repeated at the end (prompt repetition — recency position)
+    - Triple prompt repetition (Leviathan et al., 2025): key context
+      repeated at beginning, mid-log anchor, and end. ×3 repetition
+      "often substantially outperforms" single repetition.
     """
-    log_block = "\n".join(context.log_lines) if context.log_lines else "(no matching logs found)"
+    # Triple prompt repetition: inject an anchor in the middle of the log block
+    # so the model's attention stays connected to the task throughout.
+    anchor = f"[CONTEXT: investigating {context.service_name} — {alert_info.get('title', '')}]"
+    lines = context.log_lines if context.log_lines else []
+    if len(lines) > 10:
+        mid = len(lines) // 2
+        lines = lines[:mid] + [anchor] + lines[mid:]
+    log_block = "\n".join(lines) if lines else "(no matching logs found)"
 
     quality_section = ""
     if context.quality:

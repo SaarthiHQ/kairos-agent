@@ -114,14 +114,38 @@ def _run_test(args) -> None:
     elif not service:
         service = "test-service"
 
+    # For test mode, use a triggered_at that matches sample log timestamps.
+    # If --at is provided, use that; otherwise try to detect from log content.
+    triggered_at = getattr(args, "at", "") or ""
+    if not triggered_at:
+        # Auto-detect: use the latest timestamp from the configured sources
+        from kairos_agent.sources import build_sources
+        from kairos_agent.context_assembler import parse_timestamp
+        from datetime import datetime as dt, timezone as tz
+
+        all_sources = build_sources(config.log_sources)
+        latest_ts = None
+        for source in all_sources:
+            fetched = source.fetch(service, dt.min.replace(tzinfo=tz.utc), dt.max.replace(tzinfo=tz.utc))
+            for line in fetched.lines:
+                ts = parse_timestamp(line)
+                if ts and (latest_ts is None or ts > latest_ts):
+                    latest_ts = ts
+        if latest_ts:
+            triggered_at = latest_ts.isoformat()
+            print(f"Auto-detected trigger time from logs: {triggered_at}")
+
+    if not triggered_at:
+        triggered_at = __import__("datetime").datetime.now(
+            __import__("datetime").timezone.utc
+        ).isoformat()
+
     alert_info = {
         "incident_id": "TEST-001",
         "title": args.title,
         "service_name": service,
         "urgency": "high",
-        "triggered_at": __import__("datetime").datetime.now(
-            __import__("datetime").timezone.utc
-        ).isoformat(),
+        "triggered_at": triggered_at,
         "html_url": "https://test/incidents/TEST-001",
     }
 

@@ -119,27 +119,37 @@ def _assess_quality(
     gaps: list[str] = []
 
     if succeeded == 0 and len(results) > 0:
-        gaps.append("CRITICAL: No log sources returned data")
+        gaps.append("CRITICAL: No log sources returned data — check source configuration and credentials")
 
     for r in results:
         if r.status == "error":
             gaps.append(f"{r.source_name}: {r.error_message}")
         elif r.status == "empty":
-            gaps.append(f"{r.source_name}: returned 0 lines — verify query or access")
+            gaps.append(f"{r.source_name}: returned 0 lines — verify query template or check if the service logs to this source")
 
     title = alert_info.get("title", "").lower()
     if error_count == 0 and any(
         kw in title for kw in ("error", "fatal", "critical", "exception")
     ):
         gaps.append(
-            "No ERROR-level lines found despite error-related alert — check log levels"
+            "No ERROR-level lines found despite error-related alert — check if log levels are set correctly or if errors are logged to a different source"
         )
 
+    # Progressive disclosure: suggest what to add based on what's missing
     source_types = {r.source_name.split(":")[0] for r in results}
+    has_logs = "file" in source_types or "datadog" in source_types or "loki" in source_types
+    has_metrics = any("metric" in r.source_name.lower() for r in results)
+
     if len(source_types) == 1:
         only_type = next(iter(source_types))
+        suggestions = []
+        if only_type == "file":
+            suggestions.append("a centralized log platform (Datadog, Loki) for richer querying")
+        if not has_metrics:
+            suggestions.append("a metrics source for CPU/memory/latency correlation")
+        suggest_str = " and ".join(suggestions) if suggestions else "other sources"
         gaps.append(
-            f"Only {only_type} sources configured — consider adding other sources for cross-correlation"
+            f"Only {only_type} sources configured — consider adding {suggest_str}"
         )
 
     return QualityAssessment(

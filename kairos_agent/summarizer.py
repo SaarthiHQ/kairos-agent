@@ -1,4 +1,11 @@
-"""Send assembled context to Claude and get a triage summary."""
+"""Send assembled context to Claude and get a triage summary.
+
+Prompt design follows context engineering best practices:
+- Structured system prompt with clear sections (Anthropic guide)
+- Situation-first user prompt with evidence and question at end
+- Prompt repetition of key context (Leviathan et al., 2025)
+- Quality assessment surfaced so the model can express confidence
+"""
 
 from __future__ import annotations
 
@@ -11,10 +18,18 @@ from kairos_agent.context_assembler import LogContext
 
 logger = logging.getLogger("kairos_agent")
 
+# System prompt structured with clear sections per Anthropic's
+# context engineering guide: "extremely clear, simple, direct language"
+# at "the right altitude" — specific enough to guide, flexible enough
+# for strong heuristics.
 SYSTEM_PROMPT = """\
-You are an expert SRE triage assistant. You receive incident context (alert details \
-and relevant log lines) and produce a concise triage summary for the on-call engineer.
+<role>
+You are an expert incident triage assistant. You receive incident context \
+(alert details and relevant log lines) and produce a concise triage summary \
+for the on-call engineer.
+</role>
 
+<output_format>
 Your summary must be actionable and scannable in under 30 seconds. Structure it as:
 
 1. **What's happening**: One-sentence description of the incident.
@@ -22,17 +37,29 @@ Your summary must be actionable and scannable in under 30 seconds. Structure it 
 3. **Key evidence**: The 3-5 most important log lines or patterns (quote them).
 4. **Likely root cause**: Your best assessment based on the evidence.
 5. **Suggested next steps**: 2-3 concrete actions the on-call should take first.
+</output_format>
 
-Be direct. No filler. If the logs are insufficient, say so explicitly and suggest \
-where to look next.
-
-If context quality is low (failed sources, gaps, or low coverage), explicitly state \
-your confidence level and recommend where to look for missing data.\
+<guidelines>
+- Be direct. No filler.
+- If the logs are insufficient, say so explicitly and suggest where to look next.
+- If context quality is low (failed sources, gaps, or low coverage), explicitly \
+state your confidence level and recommend where to look for missing data.
+- When multiple sources are available, note correlations across sources.
+- If no ERROR-level lines are found despite an error-related alert, flag this \
+as a potential logging or configuration issue.
+</guidelines>\
 """
 
 
 def build_user_prompt(alert_info: dict, context: LogContext) -> str:
-    """Build the user prompt from alert info and assembled context."""
+    """Build the user prompt from alert info and assembled context.
+
+    Prompt structure follows research-backed practices:
+    - Alert details first (situation — primacy position)
+    - Quality assessment next (so the model calibrates confidence early)
+    - Log lines in the middle (evidence)
+    - Key context repeated at the end (prompt repetition — recency position)
+    """
     log_block = "\n".join(context.log_lines) if context.log_lines else "(no matching logs found)"
 
     quality_section = ""
@@ -47,11 +74,18 @@ def build_user_prompt(alert_info: dict, context: LogContext) -> str:
 {gaps_block}
 """
 
+    # Prompt repetition: repeat the key identifiers (service, title) after the
+    # log block so the model has them in its attention window when generating.
+    # Research shows this improves accuracy in 47/70 benchmarks with 0 regressions.
+    title = alert_info.get('title', 'N/A')
+    service = context.service_name
+    urgency = alert_info.get('urgency', 'N/A')
+
     return f"""\
 ## Incident Alert
-- **Title**: {alert_info.get('title', 'N/A')}
-- **Service**: {context.service_name}
-- **Urgency**: {alert_info.get('urgency', 'N/A')}
+- **Title**: {title}
+- **Service**: {service}
+- **Urgency**: {urgency}
 - **Triggered at**: {alert_info.get('triggered_at', 'N/A')}
 - **PagerDuty URL**: {alert_info.get('html_url', 'N/A')}
 
@@ -66,7 +100,9 @@ def build_user_prompt(alert_info: dict, context: LogContext) -> str:
 {log_block}
 ```
 
-Produce your triage summary now.\
+## Task
+Produce a triage summary for the incident "{title}" affecting **{service}** (urgency: {urgency}). \
+Focus on the evidence above and assess root cause.\
 """
 
 

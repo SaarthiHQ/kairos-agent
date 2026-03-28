@@ -97,6 +97,15 @@ def build_sources(log_sources: list[LogSource]) -> list[Source]:
                 query_template=ls.options.get("query", '{app="{service_name}"}'),
                 auth_header=ls.credentials.get("auth_header"),
             ))
+        elif ls.type == "newrelic":
+            from kairos_agent.sources.newrelic_source import NewRelicSource
+
+            sources.append(NewRelicSource(
+                api_key=ls.credentials.get("api_key", ""),
+                account_id=ls.options.get("account_id", ""),
+                query_template=ls.options.get("query", "SELECT timestamp, message, level, service FROM Log WHERE service = '{service_name}'"),
+                region=ls.options.get("region", "us"),
+            ))
         elif ls.type == "http":
             from kairos_agent.sources.http_source import GenericHTTPSource
 

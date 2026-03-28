@@ -229,8 +229,19 @@ def assemble_context(
     # Sort by score descending, then by original order for ties
     scored_lines.sort(key=lambda x: (-x[0], x[1]))
 
-    # Take top N lines, then re-sort by original order for readability
-    top_lines = scored_lines[: config.max_log_lines]
+    # Take top N lines, respecting both line count and token budget.
+    # Token budget ensures we don't exceed the LLM's effective reasoning
+    # window (~3K tokens). Rough heuristic: 1 token ≈ 4 characters.
+    top_lines: list[tuple[int, int, str]] = []
+    token_count = 0
+    for entry in scored_lines[: config.max_log_lines]:
+        line_tokens = len(entry[2]) // 4 + 1
+        if token_count + line_tokens > config.max_context_tokens:
+            break
+        top_lines.append(entry)
+        token_count += line_tokens
+
+    # Re-sort by original order for readability
     top_lines.sort(key=lambda x: x[1])
 
     error_count = sum(

@@ -22,8 +22,10 @@ class PagerDutyConfig:
 
 @dataclass
 class LogSource:
-    type: str  # "file" for MVP
-    path: str
+    type: str  # "file", "datadog", "loki", "http"
+    path: str = ""
+    credentials: dict[str, str] = field(default_factory=dict)
+    options: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -97,7 +99,12 @@ def load_config(path: str | Path = "kairos.yaml") -> KairosConfig:
         raise ValueError("At least one log_source is required in kairos.yaml")
 
     log_sources = [
-        LogSource(type=ls.get("type", "file"), path=ls["path"])
+        LogSource(
+            type=ls.get("type", "file"),
+            path=ls.get("path", ""),
+            credentials=ls.get("credentials", {}),
+            options=ls.get("options", {}),
+        )
         for ls in log_sources_raw
     ]
 

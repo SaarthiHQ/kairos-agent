@@ -24,13 +24,28 @@ Your summary must be actionable and scannable in under 30 seconds. Structure it 
 5. **Suggested next steps**: 2-3 concrete actions the on-call should take first.
 
 Be direct. No filler. If the logs are insufficient, say so explicitly and suggest \
-where to look next.\
+where to look next.
+
+If context quality is low (failed sources, gaps, or low coverage), explicitly state \
+your confidence level and recommend where to look for missing data.\
 """
 
 
 def build_user_prompt(alert_info: dict, context: LogContext) -> str:
     """Build the user prompt from alert info and assembled context."""
     log_block = "\n".join(context.log_lines) if context.log_lines else "(no matching logs found)"
+
+    quality_section = ""
+    if context.quality:
+        q = context.quality
+        gaps_block = "\n".join(f"  - {g}" for g in q.gaps) if q.gaps else "  (none)"
+        quality_section = f"""
+## Context Quality
+- **Sources attempted**: {q.sources_attempted} | **succeeded**: {q.sources_succeeded} | **failed**: {q.sources_failed}
+- **Coverage**: {q.coverage_ratio:.0%}
+- **Gaps**:
+{gaps_block}
+"""
 
     return f"""\
 ## Incident Alert
@@ -45,7 +60,7 @@ def build_user_prompt(alert_info: dict, context: LogContext) -> str:
 - **Lines scanned**: {context.total_lines_scanned}
 - **Error lines found**: {context.error_count}
 - **Sources**: {', '.join(context.sources_checked)}
-
+{quality_section}
 ## Relevant Log Lines
 ```
 {log_block}

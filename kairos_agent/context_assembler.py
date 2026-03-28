@@ -1,21 +1,23 @@
 """Assemble relevant log context for an incident.
 
-This module is the core intelligence of kairos-agent. It reads log sources,
-filters by time window and service name, and returns the most relevant lines.
-
-Designed to be swappable — v0.2 will add Datadog/Grafana sources.
+This module is the core intelligence of kairos-agent. It pulls logs from
+configured sources, filters by time window and service name, and returns
+the most relevant lines with a quality assessment.
 """
 
 from __future__ import annotations
 
-import glob
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 from kairos_agent.config import ContextConfig, LogSource
+from kairos_agent.sources import (
+    QualityAssessment,
+    SourceResult,
+    build_sources,
+)
 
 logger = logging.getLogger("kairos_agent")
 
@@ -62,6 +64,7 @@ class LogContext:
     total_lines_scanned: int
     sources_checked: list[str]
     error_count: int
+    quality: QualityAssessment | None = None
 
 
 def parse_timestamp(line: str) -> datetime | None:
@@ -102,29 +105,52 @@ def _score_line(line: str, service_name: str) -> int:
     return score
 
 
-def _read_file_source(source: LogSource) -> list[str]:
-    """Read all lines from a file-based log source (supports globs)."""
-    all_lines: list[str] = []
-    matched_paths = sorted(glob.glob(source.path))
+def _assess_quality(
+    results: list[SourceResult],
+    alert_info: dict,
+    error_count: int,
+) -> QualityAssessment:
+    """Assess the quality and completeness of assembled context."""
+    succeeded = sum(1 for r in results if r.status == "ok")
+    failed = sum(1 for r in results if r.status == "error")
+    empty = sum(1 for r in results if r.status == "empty")
+    total_lines = sum(r.lines_fetched for r in results)
 
-    if not matched_paths:
-        logger.warning("No files matched log source pattern: %s", source.path)
-        return all_lines
+    gaps: list[str] = []
 
-    for file_path in matched_paths:
-        path = Path(file_path)
-        if not path.is_file():
-            continue
-        try:
-            lines = path.read_text(errors="replace").splitlines()
-            # Tag each line with its source file for context
-            all_lines.extend(
-                f"[{path.name}] {line}" for line in lines
-            )
-        except OSError as e:
-            logger.warning("Could not read %s: %s", file_path, e)
+    if succeeded == 0 and len(results) > 0:
+        gaps.append("CRITICAL: No log sources returned data")
 
-    return all_lines
+    for r in results:
+        if r.status == "error":
+            gaps.append(f"{r.source_name}: {r.error_message}")
+        elif r.status == "empty":
+            gaps.append(f"{r.source_name}: returned 0 lines — verify query or access")
+
+    title = alert_info.get("title", "").lower()
+    if error_count == 0 and any(
+        kw in title for kw in ("error", "fatal", "critical", "exception")
+    ):
+        gaps.append(
+            "No ERROR-level lines found despite error-related alert — check log levels"
+        )
+
+    source_types = {r.source_name.split(":")[0] for r in results}
+    if len(source_types) == 1:
+        only_type = next(iter(source_types))
+        gaps.append(
+            f"Only {only_type} sources configured — consider adding other sources for cross-correlation"
+        )
+
+    return QualityAssessment(
+        sources_attempted=len(results),
+        sources_succeeded=succeeded,
+        sources_failed=failed,
+        sources_empty=empty,
+        total_lines_fetched=total_lines,
+        results=results,
+        gaps=gaps,
+    )
 
 
 def assemble_context(
@@ -135,10 +161,12 @@ def assemble_context(
     """Pull and filter logs relevant to an incident.
 
     Strategy:
-    1. Read all lines from configured log sources
-    2. Filter to the time window (if timestamps are parseable)
-    3. Boost lines mentioning the affected service or error keywords
-    4. Return top N lines sorted by relevance, preserving order
+    1. Build source connectors from config
+    2. Fetch lines from each source
+    3. Filter to the time window (if timestamps are parseable)
+    4. Boost lines mentioning the affected service or error keywords
+    5. Return top N lines sorted by relevance, preserving order
+    6. Include quality assessment for the summarizer
     """
     service_name = alert_info.get("service_name", "unknown")
     triggered_at_str = alert_info.get("triggered_at", "")
@@ -153,16 +181,24 @@ def assemble_context(
     window_start = triggered_at - timedelta(minutes=config.time_window_minutes)
     window_end = triggered_at
 
+    # Fetch from all configured sources
+    sources = build_sources(log_sources)
+    source_results: list[SourceResult] = []
     all_lines: list[str] = []
     sources_checked: list[str] = []
 
-    for source in log_sources:
-        if source.type == "file":
-            lines = _read_file_source(source)
-            all_lines.extend(lines)
-            sources_checked.append(source.path)
-        else:
-            logger.warning("Unsupported log source type: %s", source.type)
+    for source in sources:
+        fetched = source.fetch(service_name, window_start, window_end)
+        status = "error" if fetched.error else ("empty" if not fetched.lines else "ok")
+        source_results.append(SourceResult(
+            source_name=fetched.source_name,
+            lines_fetched=fetched.line_count,
+            fetch_duration_ms=fetched.fetch_duration_ms,
+            status=status,
+            error_message=fetched.error,
+        ))
+        all_lines.extend(fetched.lines)
+        sources_checked.append(fetched.source_name)
 
     total_scanned = len(all_lines)
 
@@ -191,6 +227,8 @@ def assemble_context(
         1 for score, _, _ in top_lines if score >= 10
     )
 
+    quality = _assess_quality(source_results, alert_info, error_count)
+
     return LogContext(
         service_name=service_name,
         time_window_start=window_start.isoformat(),
@@ -199,4 +237,5 @@ def assemble_context(
         total_lines_scanned=total_scanned,
         sources_checked=sources_checked,
         error_count=error_count,
+        quality=quality,
     )

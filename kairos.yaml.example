@@ -5,8 +5,35 @@ pagerduty:
   webhook_secret: "your-pagerduty-webhook-secret"
 
 log_sources:
+  # File-based logs (v0.1+)
   - type: file
     path: "/var/log/app/*.log"
+
+  # Datadog Logs API (v0.2+)
+  # - type: datadog
+  #   credentials:
+  #     api_key: "${DD_API_KEY}"
+  #     app_key: "${DD_APP_KEY}"
+  #   options:
+  #     site: "datadoghq.com"
+  #     query: "service:{service_name}"
+
+  # Grafana Loki (v0.2+)
+  # - type: loki
+  #   options:
+  #     url: "http://loki.internal:3100"
+  #     query: '{app="{service_name}"}'
+  #   credentials:
+  #     auth_header: "Bearer ${LOKI_TOKEN}"
+
+  # Generic HTTP/REST API (v0.2+)
+  # - type: http
+  #   options:
+  #     url: "https://logs.internal/api/search?service={service_name}&from={start_epoch}&to={end_epoch}"
+  #     method: GET
+  #     response_lines_path: "data.results"
+  #   credentials:
+  #     auth_header: "Bearer ${LOG_API_TOKEN}"
 
 llm:
   provider: anthropic

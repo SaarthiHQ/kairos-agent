@@ -15,3 +15,7 @@ kairos.yaml
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+images/
+papers/
+*.md
+*.txt*.DS_Store

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context Engineering Landscape — Deep Dive | Saarthi</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7; color: #1a1a1a; background: #fafafa;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 48px 24px 80px; }
+        .tag { display: inline-block; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+        h1 { font-size: 2em; font-weight: 800; line-height: 1.2; margin-bottom: 8px; color: #0f172a; }
+        .subtitle { font-size: 17px; color: #6b7280; margin-bottom: 40px; }
+        h2 { font-size: 1.4em; font-weight: 700; margin-top: 48px; margin-bottom: 16px; color: #0f172a; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; }
+        h3 { font-size: 1.1em; font-weight: 700; margin-top: 28px; margin-bottom: 8px; color: #0f172a; }
+        p { margin-bottom: 16px; font-size: 16px; }
+        a { color: #4f46e5; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        ul, ol { margin-bottom: 16px; padding-left: 24px; }
+        li { margin-bottom: 6px; font-size: 15px; }
+        strong { font-weight: 700; }
+        code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
+
+        .framework-card {
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+            padding: 24px; margin-bottom: 20px;
+        }
+        .framework-card h3 { margin-top: 0; font-size: 18px; }
+        .framework-card .meta { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
+        .framework-card .what { font-size: 15px; color: #374151; margin-bottom: 12px; }
+        .framework-card .relevance {
+            background: #f0f0ff; border-left: 3px solid #4f46e5;
+            padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 14px; color: #374151;
+        }
+        .framework-card .relevance strong { color: #4f46e5; }
+
+        .strength { color: #059669; font-weight: 600; }
+        .weakness { color: #dc2626; font-weight: 600; }
+
+        .comparison-table {
+            width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 13px;
+            background: #fff; border-radius: 12px; overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+        .comparison-table th {
+            background: #0f172a; color: #fff; padding: 10px 12px;
+            text-align: left; font-weight: 600;
+        }
+        .comparison-table td { padding: 8px 12px; border-bottom: 1px solid #f3f4f6; }
+        .comparison-table tr:last-child td { border-bottom: none; }
+        .comparison-table .saarthi { background: #f0f0ff; font-weight: 600; }
+        .yes { color: #059669; } .no { color: #9ca3af; } .partial { color: #d97706; }
+
+        .lesson-card {
+            display: grid; grid-template-columns: 120px 1fr; gap: 16px;
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+            padding: 20px; margin-bottom: 12px;
+        }
+        .lesson-card .from {
+            font-weight: 700; font-size: 14px; color: #4f46e5;
+            display: flex; align-items: center;
+        }
+        .lesson-card .lesson { font-size: 15px; color: #374151; }
+
+        .gap-box {
+            background: #0f172a; color: #fff; border-radius: 12px;
+            padding: 32px; margin: 32px 0;
+        }
+        .gap-box h2 { color: #fff; border-bottom-color: #334155; margin-top: 0; }
+        .gap-box p { color: #cbd5e1; }
+        .gap-box ul { padding-left: 20px; }
+        .gap-box li { color: #e2e8f0; margin-bottom: 8px; }
+        .gap-box li::marker { color: #818cf8; }
+
+        .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #9ca3af; }
+        .footer a { color: #4f46e5; }
+
+        @media (max-width: 520px) {
+            .lesson-card { grid-template-columns: 1fr; }
+            .comparison-table { font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+<div class="tag">Saarthi Internal Research &mdash; March 2026</div>
+<h1>Context Engineering Landscape</h1>
+<p class="subtitle">What exists, what each does, and where Saarthi's framework fits.</p>
+
+<!-- ============ SECTION 1: Frameworks ============ -->
+<h2>1. Frameworks and Orchestrators</h2>
+
+<div class="framework-card">
+    <h3>LangChain / LangGraph</h3>
+    <div class="meta">75K+ GitHub stars &middot; Most widely adopted LLM framework</div>
+    <div class="what">Chains of LLM calls with memory modules, RAG pipelines, agent workflows. LangGraph adds stateful orchestration with checkpointing.</div>
+    <p><span class="strength">Strength:</span> Broad ecosystem, most tutorials target it.</p>
+    <p><span class="weakness">Weakness:</span> Higher latency (~10ms vs ~6ms). Generic &mdash; no domain-specific intelligence.</p>
+    <div class="relevance"><strong>For Saarthi:</strong> A tool, not a competitor. Saarthi's framework could use LangChain components internally, but the intelligence (scoring, compression, quality assessment) is what LangChain doesn't provide.</div>
+</div>
+
+<div class="framework-card">
+    <h3>LlamaIndex</h3>
+    <div class="meta">Data-first framework &middot; Ingestion, chunking, indexing, retrieval</div>
+    <div class="what">Designed for connecting LLMs to data. Hierarchical indexing, semantic chunking, re-ranking, context window assembly.</div>
+    <p><span class="strength">Strength:</span> Best-in-class retrieval quality. Lower latency. Handles messy documents well.</p>
+    <p><span class="weakness">Weakness:</span> Stateless by default. Retrieval-focused, not orchestration-focused.</p>
+    <div class="relevance"><strong>For Saarthi:</strong> LlamaIndex's retrieval could be a source connector in the Saarthi framework, especially for medical document search. Complementary, not competitive.</div>
+</div>
+
+<div class="framework-card">
+    <h3>Google ADK (Agent Development Kit)</h3>
+    <div class="meta">Open-source &middot; Multi-agent-native &middot; Tiered context architecture</div>
+    <div class="what">Three-tier storage: Session (conversation), Memory (long-term), Artifacts (files/data). Named, ordered "processors" transform context. Strict scoping &mdash; each agent sees minimum required context.</div>
+    <p><span class="strength">Strength:</span> Most architecturally mature approach to context isolation. Multi-agent by design.</p>
+    <p><span class="weakness">Weakness:</span> Google ecosystem bias. Less adoption than LangChain.</p>
+    <div class="relevance"><strong>For Saarthi:</strong> The closest to what we need. Tiered context (Session/Memory/Artifacts) maps to our pipeline. The "processors" concept maps to our compression/scoring. <strong>Study deeply.</strong></div>
+</div>
+
+<div class="framework-card">
+    <h3>Model Context Protocol (MCP)</h3>
+    <div class="meta">Linux Foundation &middot; 97M+ monthly SDK downloads &middot; Universal standard</div>
+    <div class="what">Standardizes how tools are defined, invoked, and how results flow into context. Just-in-time instruction injection for scaling beyond 50+ tools.</div>
+    <p><span class="strength">Strength:</span> Universal adoption (Anthropic, OpenAI, Google, Microsoft). 75+ official connectors.</p>
+    <p><span class="weakness">Weakness:</span> Protocol, not a framework. Handles connectivity, not scoring or compression.</p>
+    <div class="relevance"><strong>For Saarthi:</strong> Make kairos Sources MCP-compatible for universal tool integration. Future standard for how the framework connects to data.</div>
+</div>
+
+<!-- ============ SECTION 2: Memory ============ -->
+<h2>2. Memory and Persistence</h2>
+
+<div class="framework-card">
+    <h3>Mem0</h3>
+    <div class="meta"><a href="https://arxiv.org/abs/2504.19413">arXiv:2504.19413</a> &middot; Universal memory layer for AI agents</div>
+    <div class="what">Extracts, consolidates, and retrieves salient information from conversations. Semantic search + recency weighting + graph memory for relationships.</div>
+    <p><span class="strength">Strength:</span> 91% lower p95 latency. 90% token cost reduction. 26% improvement in LLM-as-a-Judge metric.</p>
+    <p><span class="weakness">Weakness:</span> Conversation-centric. Designed for chatbots, not incident management or clinical decision support.</p>
+    <div class="relevance"><strong>For Saarthi:</strong> Memory extraction + graph relationships directly applicable to incident history and patient history. Consider as dependency for the "Write" operation in WSCI.</div>
+</div>
+
+<!-- ============ SECTION 3: Research ============ -->
+<h2>3. Research: Self-Improving Context</h2>
+
+<div class="framework-card">
+    <h3>ACE &mdash; Agentic Context Engineering</h3>
+    <div class="meta"><a href="https://arxiv.org/abs/2510.04618">arXiv:2510.04618</a> &middot; ICLR 2026 &middot; <a href="https://github.com/ace-agent/ace">GitHub</a></div>
+    <div class="what">Treats contexts as evolving playbooks. Three components: <strong>Generator</strong> (produces output), <strong>Reflector</strong> (analyzes success/failure, extracts lessons), <strong>Curator</strong> (integrates lessons as incremental updates). "Grow-and-refine" mechanism prevents context collapse.</div>
+    <p><span class="strength">Strength:</span> +10.6% on agent benchmarks. Matches top-ranked production agents on AppWorld with a smaller model.</p>
+    <p><span class="weakness">Weakness:</span> Academic &mdash; not production-ready. Three-component architecture adds complexity.</p>
+    <div class="relevance"><strong>For Saarthi:</strong> The Reflector concept is exactly what kairos needs for v0.4+ (learning from past incidents). After each triage, a Reflector extracts "what worked" and the Curator updates scoring rules. <strong>Highly relevant.</strong></div>
+</div>
+
+<!-- ============ SECTION 4: Manus ============ -->
+<h2>4. Production Lessons: Manus AI</h2>
+
+<div class="framework-card">
+    <h3>Manus &mdash; Context Engineering for Production Agents</h3>
+    <div class="meta"><a href="https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus">Blog post</a> &middot; Rebuilt framework 4 times</div>
+    <div class="what">General-purpose AI agent. Most mature production context engineering documented publicly. ~50 tool calls per task. 100:1 input-to-output token ratio.</div>
+</div>
+
+<p>Manus's key strategies, ranked by relevance to Saarthi:</p>
+
+<div class="lesson-card">
+    <div class="from">KV-Cache</div>
+    <div class="lesson"><strong>Cache hit rate is the #1 metric.</strong> Append-only context, stable prefixes, deterministic serialization. Cached tokens cost 10x less ($0.30 vs $3.00/MTok on Claude). Critical for Saarthi SaaS economics.</div>
+</div>
+<div class="lesson-card">
+    <div class="from">Recitation</div>
+    <div class="lesson"><strong>Agent rewrites a todo.md at each step</strong>, pushing goals into recency attention span. Mitigates lost-in-the-middle across ~50 tool calls. Validates our triple prompt repetition approach.</div>
+</div>
+<div class="lesson-card">
+    <div class="from">Error keeping</div>
+    <div class="lesson"><strong>Leave failed actions in context.</strong> Seeing its own mistakes helps the model avoid repeating them. Validates our quality assessment (showing gaps, not hiding them).</div>
+</div>
+<div class="lesson-card">
+    <div class="from">Mask, don't remove</div>
+    <div class="lesson"><strong>Don't dynamically add/remove tools</strong> (breaks cache). Use logit masking to constrain availability. Relevant when kairos becomes agentic (v0.5).</div>
+</div>
+<div class="lesson-card">
+    <div class="from">Filesystem</div>
+    <div class="lesson"><strong>Treat files as unlimited context.</strong> Write data to files, read back on demand. Restorable compression &mdash; drop content if URL/path is preserved. Applicable to medical document handling.</div>
+</div>
+<div class="lesson-card">
+    <div class="from">Break patterns</div>
+    <div class="lesson"><strong>Introduce structured variation</strong> in serialization to prevent repetitive rhythms. Prevents hallucination during batch operations.</div>
+</div>
+
+<!-- ============ SECTION 5: Comparison ============ -->
+<h2>5. Comparison: Where Saarthi Fits</h2>
+
+<table class="comparison-table">
+    <thead>
+        <tr>
+            <th>Capability</th>
+            <th>LangChain</th>
+            <th>LlamaIndex</th>
+            <th>Google ADK</th>
+            <th>Mem0</th>
+            <th>ACE</th>
+            <th>Manus</th>
+            <th class="saarthi">Saarthi</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Multi-source fetch</td>
+            <td class="partial">Via tools</td>
+            <td class="partial">Via connectors</td>
+            <td class="partial">Via tools</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="partial">Via tools</td>
+            <td class="saarthi yes">Native</td>
+        </tr>
+        <tr>
+            <td>Domain-aware scoring</td>
+            <td class="no">No</td>
+            <td class="partial">Relevance rank</td>
+            <td class="no">No</td>
+            <td class="partial">Relevance</td>
+            <td class="partial">Task-specific</td>
+            <td class="no">No</td>
+            <td class="saarthi yes">Alert-type / Clinical</td>
+        </tr>
+        <tr>
+            <td>Compression</td>
+            <td class="no">No</td>
+            <td class="partial">Summarize</td>
+            <td class="partial">Processors</td>
+            <td class="yes">Intelligent</td>
+            <td class="partial">Grow-refine</td>
+            <td class="yes">Restorable</td>
+            <td class="saarthi yes">Rule-based L1</td>
+        </tr>
+        <tr>
+            <td>Quality assessment</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="partial">Reflection</td>
+            <td class="partial">Error keeping</td>
+            <td class="saarthi yes">Native gaps</td>
+        </tr>
+        <tr>
+            <td>Entity graph / catalog</td>
+            <td class="no">No</td>
+            <td class="partial">KG add-on</td>
+            <td class="partial">Session state</td>
+            <td class="partial">Graph memory</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="saarthi yes">Service / Patient</td>
+        </tr>
+        <tr>
+            <td>Token budgeting</td>
+            <td class="partial">Manual</td>
+            <td class="partial">Retrieval limits</td>
+            <td class="yes">Scope enforce</td>
+            <td class="yes">Cost optimize</td>
+            <td class="no">No</td>
+            <td class="yes">KV-cache</td>
+            <td class="saarthi yes">Budget + repetition</td>
+        </tr>
+        <tr>
+            <td>Self-improvement</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="partial">Learns</td>
+            <td class="yes">Core feature</td>
+            <td class="partial">From errors</td>
+            <td class="saarthi partial">v0.4+ planned</td>
+        </tr>
+        <tr>
+            <td>Domain-specific intelligence</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="saarthi yes"><strong>Yes &mdash; the moat</strong></td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ============ SECTION 6: The Gap ============ -->
+<div class="gap-box">
+    <h2>The Gap Saarthi Fills</h2>
+    <p>Every existing framework is either:</p>
+    <ul>
+        <li><strong>Generic orchestration</strong> (LangChain, LangGraph) &mdash; you build context engineering on top</li>
+        <li><strong>Retrieval-focused</strong> (LlamaIndex) &mdash; great at finding documents, doesn't score or compress domain-specifically</li>
+        <li><strong>Memory-focused</strong> (Mem0) &mdash; great for conversation history, not for system data or clinical records</li>
+        <li><strong>Research</strong> (ACE) &mdash; great ideas, not production-ready</li>
+        <li><strong>Single-product</strong> (Manus) &mdash; deeply optimized for one product, not reusable</li>
+    </ul>
+    <p>Saarthi's framework combines multi-source fetch, domain-specific scoring, domain-specific compression, entity graph awareness, and quality assessment &mdash; <strong>reusable across domains</strong>.</p>
+    <p style="font-size: 18px; font-weight: 700; color: #fff; margin-top: 20px;">The moat is domain-intelligent context engineering as a reusable framework.</p>
+</div>
+
+<!-- ============ SECTION 7: Lessons ============ -->
+<h2>6. What to Adopt from Each</h2>
+
+<div class="lesson-card">
+    <div class="from">Google ADK</div>
+    <div class="lesson">Tiered context (Session/Memory/Artifacts) is the right architecture. Adopt for v0.4.</div>
+</div>
+<div class="lesson-card">
+    <div class="from">Manus</div>
+    <div class="lesson">KV-cache optimization is critical for the SaaS. Append-only context, stable serialization. Recitation validates prompt repetition.</div>
+</div>
+<div class="lesson-card">
+    <div class="from">ACE</div>
+    <div class="lesson">Generator &rarr; Reflector &rarr; Curator is the self-improvement loop. Implement for incident history learning.</div>
+</div>
+<div class="lesson-card">
+    <div class="from">Mem0</div>
+    <div class="lesson">Memory extraction + graph relationships. Use for patient history and incident history persistence.</div>
+</div>
+<div class="lesson-card">
+    <div class="from">MCP</div>
+    <div class="lesson">Make Sources MCP-compatible for universal tool integration.</div>
+</div>
+<div class="lesson-card">
+    <div class="from">LlamaIndex</div>
+    <div class="lesson">Use as retrieval engine inside Saarthi Health's Source implementation for medical document search.</div>
+</div>
+
+<!-- ============ Footer ============ -->
+<div class="footer">
+    <h3 style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">Sources</h3>
+    <ul style="list-style: none; padding: 0;">
+        <li><a href="https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus">Manus: Context Engineering for AI Agents</a></li>
+        <li><a href="https://arxiv.org/abs/2510.04618">ACE: Agentic Context Engineering (ICLR 2026)</a></li>
+        <li><a href="https://arxiv.org/abs/2504.19413">Mem0: Production-Ready AI Agents with Scalable Memory</a></li>
+        <li><a href="https://developers.googleblog.com/architecting-efficient-context-aware-multi-agent-framework-for-production/">Google ADK: Context-Aware Multi-Agent Framework</a></li>
+        <li><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Anthropic: Effective Context Engineering</a></li>
+        <li><a href="https://github.com/Meirtz/Awesome-Context-Engineering">Awesome Context Engineering (comprehensive repo)</a></li>
+        <li><a href="https://weaviate.io/blog/context-engineering">Weaviate: Context Engineering &mdash; LLM Memory and Retrieval</a></li>
+    </ul>
+    <p style="margin-top: 16px;">Saarthi Internal Research &middot; March 2026 &middot; <a href="https://www.linkedin.com/in/ramanansiva">Ramanan Sivasubramanian</a></p>
+</div>
+
+</div>
+</body>
+</html>

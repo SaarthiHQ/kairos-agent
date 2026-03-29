@@ -1,0 +1,136 @@
+# Context Engineering Is Not Context Stuffing
+
+In my previous post, I argued that context engineering is reshaping on-call. A few people asked the obvious question: why can't you just give the LLM all the logs and let it figure it out?
+
+Because that doesn't work. And the reality of production systems makes it even harder than the research suggests.
+
+## The Real Problem: 10 Systems, 4 Hours
+
+Before we get to the research, let's talk about what incident triage actually looks like.
+
+A friend recently described his team's setup: ~10 systems involved in any given incident. Logs in one tool, metrics in another, dashboards that are outdated or misconfigured, alerts that fire on the wrong thresholds, limited access to the code that's actually failing. Their average MTTR is about 4 hours — and most of that time is spent not fixing the problem, but finding it.
+
+This is the norm. Current AI incident tools — including the good ones — do a partial job because they're platform-native. Datadog's AI summarizes Datadog data. That's useful if all your signal is in Datadog. It's not useful when the root cause spans a deploy log in GitHub, a config change in your CD pipeline, and an error trace in a different logging system entirely.
+
+Context engineering starts before the LLM sees anything. It starts with knowing where to look.
+
+## What the Research Says
+
+Even when you have the data, throwing it all at a model doesn't work.
+
+**Lost in the Middle** (Liu et al., Stanford, 2023) showed that LLMs exhibit a U-shaped attention curve — strong at the beginning and end of the context, significant degradation in the middle. With 20+ documents, performance dropped *below* the no-context baseline. More data made the model less accurate than giving it nothing.
+
+**Needle in the Haystack** (Nelson et al., IBM Research, 2024) demonstrated that even simple fact retrieval — finding a single planted sentence — breaks down as context length increases.
+
+**Prompt Repetition** (Leviathan et al., Google Research, 2025) revealed that the *order* of information in the prompt materially changes output quality. Repeating the query after the context improved accuracy in 47 out of 70 tests with zero regressions.
+
+LLM reasoning starts degrading around 3,000 tokens — roughly 2,000 words, about 50-60 log lines. That's not a lot of context when your system generates thousands of lines per minute.
+
+Anthropic's engineering team frames it precisely: context engineering is about finding "the smallest possible set of high-signal tokens that maximize the likelihood of a desired outcome." Intelligence isn't the bottleneck. Context is.
+
+## What an Intelligent Context-Engineered Workflow Looks Like
+
+Most tools jump straight to "send logs to the model." An intelligent workflow has five layers before the LLM sees a single token.
+
+### Layer 1: Discovery — where to look
+
+When payment-service alerts, which of your 10 systems has the signal? Application logs might be in New Relic, infrastructure metrics in CloudWatch, recent deploys in GitHub Actions, the runbook in Confluence.
+
+An intelligent engine maintains a *service catalog* — a map of services to their log sources, dependencies, and owners. When an alert fires, it already knows: payment-service logs are in New Relic, it depends on stripe-gateway (also in New Relic) and postgres-primary (in Datadog). Query those three, not all ten.
+
+This is the *Selection* principle from the WSCI framework (Write, Select, Compress, Isolate) — choosing what goes in and what stays out. The most important decision happens before any data is fetched.
+
+### Layer 2: Multi-source fetch with quality assessment
+
+The engine queries each source, but it also assesses what came back. Did New Relic return a 403? Flag it. Did Loki return zero lines for a service that should have logs? That's a signal too — maybe the service crashed, maybe logging is broken.
+
+Report what's *missing*, not just what's there. The model needs to know its own blind spots.
+
+### Layer 3: Compression — making every token count
+
+Raw logs are noisy. The same retry error appears 47 times. Health checks flood the output. A 15-minute window might produce 5,000 lines, but only 50 carry real signal.
+
+Rule-based compression handles this without an LLM:
+- **Deduplication** — identical lines collapsed: `[x47] connection refused to postgres:5432`
+- **Pattern normalization** — lines differing only in timestamps, request IDs, or durations are recognized as the same event
+- **Repetition collapse** — the first occurrence is kept with a count annotation
+
+500 compressed lines carry more signal than 5,000 raw lines. This is the *Compress* principle — making every token earn its place.
+
+### Layer 4: Alert-aware scoring and token budgeting
+
+Not all log lines are equally relevant, and the scoring should reflect the type of alert:
+- Error rate alert → boost ERROR, FATAL, EXCEPTION, stack traces
+- Latency alert → boost timeout, slow, p99, duration, deadline exceeded
+- Availability alert → boost connection refused, health check, OOM, SIGKILL
+
+The scored lines compete for a token budget — not just a line count. With a 10,000-token budget, the highest-signal lines win. Dependency lines compete at a discount (70% score) so direct-service evidence is preferred when the budget is tight.
+
+This is *Scoping* — right-sizing the context for the task.
+
+### Layer 5: Structured prompt with repetition
+
+The prompt isn't just "here are some logs, summarize them." It's engineered:
+- **Situation first** (alert details, service metadata, dependencies) — primacy position
+- **Quality report next** (so the model calibrates confidence before reading evidence)
+- **Evidence in the middle** (the scored, compressed, budget-constrained log lines)
+- **Key context repeated at the end** (service name, alert title) — recency position
+
+Triple prompt repetition: the key identifiers appear at the beginning, as an anchor in the middle of the log block, and in the closing task instruction. Leviathan et al. showed that repeating the query three times substantially outperforms single repetition. The cost is only in the parallelizable prefill stage — latency barely changes.
+
+This is *Ordering* — placing information where the model attends best.
+
+## The Levers
+
+Context engineering isn't a black box. The levers are split between the system and the user:
+
+**What the engine controls:**
+- Scoring algorithm and alert-type boosts
+- Compression (dedup, pattern normalization)
+- Token budget enforcement
+- Prompt structure and repetition
+- Quality assessment and gap detection
+
+**What the user configures:**
+- Which sources to connect (New Relic, Datadog, Loki, any REST API)
+- Service catalog — services, dependencies, owners, tiers
+- Query templates — per-source filters that express domain knowledge
+- Time window and token budget — tunable per team
+
+The engine knows how LLMs work. The user knows how their system works. Both are necessary.
+
+## The WSCI Framework
+
+The industry has converged on four operations that govern how context flows into an LLM:
+
+- **Write** — persist context externally so it survives across calls (quality reports, incident history)
+- **Select** — retrieve only what's relevant for this specific task (service catalog, dependency resolution)
+- **Compress** — summarize and compact so every token earns its place (dedup, pattern collapse, token budgets)
+- **Isolate** — separate contexts for different concerns so one noisy source doesn't drown out another (dependency logs in a separate prompt section, sub-agents in future versions)
+
+This applies whether you're building for incident response, healthcare, legal, or customer support. At Saarthi, we apply this across healthcare and on-call — the discipline is the same even when the domain changes.
+
+## The Takeaway
+
+Next time someone says "just increase the context window" or "just send it all the data":
+
+- More context often means worse results (Lost in the Middle)
+- Long-context retrieval is unreliable (Needle in the Haystack)
+- Prompt structure changes model behavior (Prompt Repetition)
+- And you can't engineer context you don't have access to in the first place
+
+The LLM is the reasoning engine. Context engineering is the five layers before it — discovery, quality assessment, compression, scoring, and prompt structure. That's where the real work happens.
+
+---
+
+### Further Reading
+
+- [Liu et al.: Lost in the Middle](https://arxiv.org/abs/2307.03172) (Stanford, 2023)
+- [Nelson et al.: Needle in the Haystack](https://arxiv.org/abs/2407.01437) (IBM Research, 2024)
+- [Leviathan et al.: Prompt Repetition](https://arxiv.org/abs/2512.14982) (Google Research, 2025)
+- [Anthropic: Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+- [Vizuara: Context Engineering Workshop](https://context-engineering.vizuara.ai/)
+
+---
+
+*This is the second in a series on context engineering in practice. Previously: [The On-Call Engineer's New Partner](#). Next: applying these principles to an open-source tool. Reach out on [LinkedIn](https://www.linkedin.com/in/ramanansiva).*

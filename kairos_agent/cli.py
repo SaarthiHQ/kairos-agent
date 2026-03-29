@@ -34,6 +34,11 @@ def main() -> None:
         help="Port to listen on (default: 8000)",
     )
     parser.add_argument(
+        "--tunnel",
+        action="store_true",
+        help="Start ngrok tunnel for public webhook access",
+    )
+    parser.add_argument(
         "--log-level",
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
@@ -125,8 +130,11 @@ def _run_test(args) -> None:
 
         all_sources = build_sources(config.log_sources)
         latest_ts = None
+        # Use a 7-day window for auto-detection (avoids negative epoch issues)
+        scan_end = dt.now(tz.utc)
+        scan_start = scan_end - __import__("datetime").timedelta(days=7)
         for source in all_sources:
-            fetched = source.fetch(service, dt.min.replace(tzinfo=tz.utc), dt.max.replace(tzinfo=tz.utc))
+            fetched = source.fetch(service, scan_start, scan_end)
             for line in fetched.lines:
                 ts = parse_timestamp(line)
                 if ts and (latest_ts is None or ts > latest_ts):
@@ -194,8 +202,52 @@ def _run_test(args) -> None:
     print(summary)
 
 
+def _start_tunnel(port: int) -> str | None:
+    """Start ngrok tunnel and return the public URL."""
+    import subprocess
+    import json as json_mod
+    import time
+
+    # Check if ngrok is installed
+    try:
+        subprocess.run(["ngrok", "version"], capture_output=True, check=True)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        print("\n  ngrok is not installed. Install it:")
+        print("    brew install ngrok    # macOS")
+        print("    snap install ngrok    # Linux")
+        print("    https://ngrok.com/download")
+        print("\n  Or run without --tunnel and expose the port yourself.\n")
+        return None
+
+    # Start ngrok in background
+    proc = subprocess.Popen(
+        ["ngrok", "http", str(port), "--log=stdout", "--log-format=json"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    # Wait for tunnel to establish and get the URL from the API
+    time.sleep(3)
+    try:
+        resp = __import__("urllib.request", fromlist=["urlopen"]).urlopen(
+            "http://127.0.0.1:4040/api/tunnels"
+        )
+        data = json_mod.loads(resp.read())
+        for tunnel in data.get("tunnels", []):
+            if tunnel.get("proto") == "https":
+                return tunnel["public_url"]
+        # Fallback to first tunnel
+        if data.get("tunnels"):
+            return data["tunnels"][0]["public_url"]
+    except Exception as e:
+        print(f"  Could not get ngrok URL: {e}")
+        print("  Check if ngrok is running: http://127.0.0.1:4040")
+
+    return None
+
+
 def _run_server(args) -> None:
-    """Start the webhook server."""
+    """Start the webhook server, optionally with an ngrok tunnel."""
     from kairos_agent.config import load_config
 
     try:
@@ -213,13 +265,51 @@ def _run_server(args) -> None:
 
     wr._config = config
 
-    print(f"kairos-agent v{__version__} starting on {args.host}:{args.port}")
-    print(f"Config: {args.config}")
-    print(f"Sources: {len(config.log_sources)} | Services: {len(config.services)}")
-    print(f"LLM: {config.llm.provider}/{config.llm.model}")
-    print(f"Webhook: POST http://{args.host}:{args.port}/webhook/pagerduty")
+    port = args.port
+    tunnel_url = None
 
-    uvicorn.run(app, host=args.host, port=args.port)
+    if args.tunnel:
+        print(f"Starting ngrok tunnel on port {port}...")
+        tunnel_url = _start_tunnel(port)
+        if not tunnel_url:
+            print("Continuing without tunnel.\n")
+
+    print()
+    print(f"  kairos-agent v{__version__}")
+    print(f"  Config: {args.config}")
+    print(f"  Sources: {len(config.log_sources)} | Services: {len(config.services)}")
+    print(f"  LLM: {config.llm.provider}/{config.llm.model}")
+    print()
+
+    if tunnel_url:
+        print(f"  Public URL: {tunnel_url}")
+        print()
+        print("  Webhook endpoints (use these in your alert tools):")
+        print(f"    New Relic:  {tunnel_url}/webhook/newrelic")
+        print(f"    PagerDuty: {tunnel_url}/webhook/pagerduty")
+        print(f"    Slack cmd: {tunnel_url}/slack/command")
+        print()
+        print("  Quick setup:")
+        print("    1. New Relic → Alerts → Workflows → Add destination → Webhook")
+        print(f"       URL: {tunnel_url}/webhook/newrelic")
+        print("    2. Slack → App settings → Slash Commands → Request URL:")
+        print(f"       URL: {tunnel_url}/slack/command")
+        print()
+    else:
+        print(f"  Local: http://{args.host}:{port}")
+        print()
+        print("  Endpoints:")
+        print(f"    Health:    GET  http://{args.host}:{port}/health")
+        print(f"    NewRelic:  POST http://{args.host}:{port}/webhook/newrelic")
+        print(f"    PagerDuty: POST http://{args.host}:{port}/webhook/pagerduty")
+        print(f"    Slack:     POST http://{args.host}:{port}/slack/command")
+        print()
+        print("  To expose publicly, restart with --tunnel:")
+        print(f"    kairos-agent --config {args.config} --tunnel")
+        print()
+
+    sys.stdout.flush()
+    uvicorn.run(app, host=args.host, port=port, log_level="warning")
 
 
 if __name__ == "__main__":

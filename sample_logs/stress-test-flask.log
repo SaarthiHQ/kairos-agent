@@ -1,0 +1,36 @@
+2026-03-28T20:30:00Z [INFO] saarthi-flask: WhatsApp message received from +91XXXXXXXX conversation=conv_8821
+2026-03-28T20:30:01Z [INFO] saarthi-flask: Intent detected: document_upload conversation=conv_8821
+2026-03-28T20:30:02Z [INFO] saarthi-flask: Forwarding to saarthi-clinical api_url=https://process.saarthihq.com/api/v2/documents/upload
+2026-03-28T20:30:03Z [INFO] saarthi-flask: Upload response status=200 doc_id=doc_9101
+2026-03-28T20:30:10Z [INFO] saarthi-flask: WhatsApp message received from +91YYYYYYYY conversation=conv_8822
+2026-03-28T20:30:11Z [INFO] saarthi-flask: Intent detected: query_status conversation=conv_8822
+2026-03-28T20:30:15Z [INFO] saarthi-flask: Health check OK
+2026-03-28T20:30:30Z [INFO] saarthi-flask: WhatsApp message received from +91ZZZZZZZZ conversation=conv_8823
+2026-03-28T20:30:31Z [INFO] saarthi-flask: Intent detected: document_upload conversation=conv_8823
+2026-03-28T20:30:32Z [INFO] saarthi-flask: Forwarding to saarthi-clinical api_url=https://process.saarthihq.com/api/v2/documents/upload
+2026-03-28T20:30:33Z [INFO] saarthi-flask: Upload response status=200 doc_id=doc_9102
+2026-03-28T20:31:00Z [INFO] saarthi-flask: Health check OK
+2026-03-28T20:31:30Z [INFO] saarthi-flask: WhatsApp message received from +91XXXXXXXX conversation=conv_8821
+2026-03-28T20:31:31Z [INFO] saarthi-flask: Intent detected: query_status conversation=conv_8821
+2026-03-28T20:31:32Z [INFO] saarthi-flask: Forwarding status check to saarthi-clinical doc_id=doc_9101
+2026-03-28T20:31:33Z [INFO] saarthi-flask: Status response: processing complete doc_id=doc_9101
+2026-03-28T20:32:00Z [INFO] saarthi-flask: Health check OK
+2026-03-28T20:32:15Z [WARN] saarthi-flask: Callback from saarthi-clinical delayed >60s doc_id=doc_9105 expected_at=2026-03-28T20:31:15Z
+2026-03-28T20:32:30Z [INFO] saarthi-flask: WhatsApp message received from +91AAAAAAA conversation=conv_8824
+2026-03-28T20:32:31Z [INFO] saarthi-flask: Intent detected: document_upload conversation=conv_8824
+2026-03-28T20:32:32Z [INFO] saarthi-flask: Forwarding to saarthi-clinical
+2026-03-28T20:32:35Z [WARN] saarthi-flask: saarthi-clinical response slow: 3200ms for /api/v2/documents/upload
+2026-03-28T20:32:40Z [ERROR] saarthi-flask: Request to saarthi-clinical failed uri=/api/v2/processing/status/doc_9105 status=500 error="Internal Server Error"
+2026-03-28T20:32:42Z [ERROR] saarthi-flask: Request to saarthi-clinical failed uri=/api/v2/processing/status/doc_9106 status=500 error="Internal Server Error"
+2026-03-28T20:32:45Z [INFO] saarthi-flask: Health check OK
+2026-03-28T20:32:50Z [WARN] saarthi-flask: Multiple patients waiting for extraction results: conv_8821(doc_9105), conv_8823(doc_9106), conv_8824(doc_9107)
+2026-03-28T20:33:00Z [ERROR] saarthi-flask: Request to saarthi-clinical timeout after 10s uri=/api/v2/documents/upload
+2026-03-28T20:33:01Z [ERROR] saarthi-flask: Sending fallback message to patient "We're experiencing delays processing your document" conversation=conv_8824
+2026-03-28T20:33:05Z [ERROR] saarthi-flask: Request to saarthi-clinical timeout after 10s uri=/api/v2/timeline/pat_1042
+2026-03-28T20:33:10Z [WARN] saarthi-flask: 3 patients affected by saarthi-clinical degradation
+2026-03-28T20:33:15Z [INFO] saarthi-flask: Health check OK
+2026-03-28T20:33:20Z [ERROR] saarthi-flask: Auth token refresh failed for conversation=conv_8821 error="Firebase token expired, clinical API returning 401"
+2026-03-28T20:33:25Z [ERROR] saarthi-flask: Auth token refresh failed for conversation=conv_8822 error="Firebase token expired, clinical API returning 401"
+2026-03-28T20:33:30Z [INFO] saarthi-flask: Health check OK
+2026-03-28T20:33:35Z [ERROR] saarthi-flask: Request to saarthi-clinical failed uri=/api/v2/patients/pat_1042 status=401 error="Unauthorized"
+2026-03-28T20:33:40Z [CRITICAL] saarthi-flask: saarthi-clinical appears fully degraded — 5 consecutive failures in 60s

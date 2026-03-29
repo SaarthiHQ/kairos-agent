@@ -1,0 +1,36 @@
+slack:
+  webhook_url: "https://test"
+
+pagerduty:
+  webhook_secret: "test"
+
+log_sources:
+  - name: clinical-logs
+    type: file
+    path: "sample_logs/stress-test.log"
+
+  - name: flask-logs
+    type: file
+    path: "sample_logs/stress-test-flask.log"
+
+services:
+  saarthi-clinical:
+    depends_on: [saarthi-flask]
+    owners: [ramanan]
+    sources: [clinical-logs]
+    tier: critical
+
+  saarthi-flask:
+    depends_on: [saarthi-clinical]
+    owners: [ramanan]
+    sources: [flask-logs]
+    tier: critical
+
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+
+context:
+  time_window_minutes: 15
+  max_log_lines: 500
+  max_context_tokens: 10000

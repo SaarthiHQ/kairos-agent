@@ -2,7 +2,7 @@
 # Copy to kairos.yaml and fill in credentials
 
 slack:
-  webhook_url: "${SLACK_WEBHOOK_URL}"  # Your #saarthi-alerts webhook
+  webhook_url: "${SLACK_WEBHOOK_URL}"  # #prod-alerts channel
 
 pagerduty:
   webhook_secret: "saarthi-test-secret"  # For simulated testing
@@ -15,7 +15,7 @@ log_sources:
     options:
       account_id: "7688224"
       region: "eu"  # Saarthi uses EU data center (collector.eu01.nr-data.net)
-      query: "SELECT timestamp, message, level, service.name, error.class, error.message, request.uri, duration FROM Log WHERE service.name = '{service_name}'"
+      query: "SELECT timestamp, message, level, service, environment, documentId FROM Log WHERE service = '{service_name}'"
 
 services:
   saarthi-clinical:

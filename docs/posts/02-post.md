@@ -1,23 +1,23 @@
-100K tokens. 200K. 1M. We keep increasing context windows like it solves the problem.
+AI-generated code has 1.7x more issues than human code. Not because the models are bad — but because "input quality directly correlates with output reliability."
 
-It doesn't. And in production, it's worse than the research suggests.
+That's from CodeRabbit's study of 470 GitHub PRs. And the same principle applies to every AI system consuming real-world data.
 
-A friend described his reality: ~10 systems, ~4hr MTTR. Logs in one tool, metrics in another, dashboards outdated, alerts misconfigured. Most of those 4 hours aren't spent fixing — they're spent finding.
+In incident management: ~10 systems, ~4hr average MTTR. Most of that time is spent finding the problem, not fixing it. Current AI tools help, but they're platform-native — Datadog's AI summarizes Datadog data. Not useful when the root cause spans three different systems.
 
-Current AI tools do a partial job because they're platform-native. Datadog's AI summarizes Datadog data. Not useful when the root cause spans three different systems.
+The research is clear on why "just send everything to the model" fails:
 
-An intelligent context-engineered workflow has five layers before the LLM sees a single token:
+- More context often means worse results — performance drops below the no-context baseline with 20+ documents (Liu et al., Stanford)
+- LLM reasoning degrades around 3,000 tokens — about 50 log lines (Nelson et al., IBM Research)
+- Prompt structure materially changes output — 47/70 accuracy wins just from reordering (Leviathan et al., Google Research)
 
-1. Discovery — which of your 10 systems has the signal for this incident?
-2. Multi-source fetch with quality assessment — can you trust what you got? Report what's missing.
-3. Compression — 5,000 raw lines → 500 deduplicated, pattern-collapsed lines. Every token earns its place.
-4. Alert-aware scoring — error rate alerts boost stack traces. Latency alerts boost timeouts. Not all evidence is equally relevant.
-5. Structured prompt with repetition — situation first, evidence in the middle, key context repeated at the end. Research shows 3x repetition substantially outperforms single (47/70 wins, 0 losses).
+Anthropic defines context engineering as finding "the smallest possible set of high-signal tokens that maximize the likelihood of a desired outcome." Intelligence isn't the bottleneck. Context is.
 
-The WSCI framework (Write, Select, Compress, Isolate) governs how context flows into an LLM. The discipline is the same whether you're building for incident response, healthcare, or legal.
+The uncomfortable implication: with disciplined context engineering, a smaller model can approach the output quality of a larger model on structured tasks. The ACE framework (ICLR 2026) demonstrated this — a smaller model matched the top-ranked agent by engineering better context.
 
-We've been building this at Saarthi — applying context engineering across healthcare and on-call. More on that in a future post.
+This isn't about prompt tricks. It's an engineering discipline: what to select, how to compress, how to score by relevance, how to assess quality gaps, and how to structure for attention.
 
-I wrote a deeper piece on the five layers and the research behind them — link in comments.
+We've been applying this at Saarthi across healthcare and incident management. Same discipline, different domains. More on that soon.
 
-#ContextEngineering #AI #IncidentResponse #OnCall #LLMs #Reliability
+I wrote a deeper piece — link in comments.
+
+#ContextEngineering #AI #IncidentResponse #OnCall #SoftwareEngineering

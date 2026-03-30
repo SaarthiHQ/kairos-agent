@@ -1,23 +1,25 @@
-AI-generated code has 1.7x more issues than human code. Not because the models are bad — but because "input quality directly correlates with output reliability."
+We've been building AI systems for doctors and on-call engineers. Two completely different domains. Same core problem.
 
-That's from CodeRabbit's study of 470 GitHub PRs. And the same principle applies to every AI system consuming real-world data.
+The bottleneck is never the answer. It's assembling the right context to arrive at one.
 
-In incident management: ~10 systems, ~4hr average MTTR. Most of that time is spent finding the problem, not fixing it. Current AI tools help, but they're platform-native — Datadog's AI summarizes Datadog data. Not useful when the root cause spans three different systems.
+A nephrologist getting a referral from a cardiologist doesn't need the patient's full history. They need creatinine trends, nephrotoxic medications, and the specific question being asked. An SRE getting paged at 3am doesn't need every log line from every service. They need the error logs from the affected service and its dependencies.
 
-The research is clear on why "just send everything to the model" fails:
+In both cases, the human is the expert reasoner. The system's job is expert-level assembly.
 
-- More context often means worse results — performance drops below the no-context baseline with 20+ documents (Liu et al., Stanford)
-- LLM reasoning degrades around 3,000 tokens — about 50 log lines (Nelson et al., IBM Research)
-- Prompt structure materially changes output — 47/70 accuracy wins just from reordering (Leviathan et al., Google Research)
+Here's what the research says about why this matters:
 
-Anthropic defines context engineering as finding "the smallest possible set of high-signal tokens that maximize the likelihood of a desired outcome." Intelligence isn't the bottleneck. Context is.
+→ AI-generated code has 1.7x more issues than human code. Root cause: "input quality directly correlates with output reliability" (CodeRabbit, 2026)
+→ More context often means worse model performance — drops below no-context baseline with 20+ documents (Liu et al., Stanford)
+→ Reasoning-trained models are 24% worse at saying "I don't know" (AbstentionBench, 2025). Making models smarter makes them worse at knowing their limits.
+→ But: smaller models with better context match larger models on structured tasks (ACE, ICLR 2026). Structure beats scale.
 
-The uncomfortable implication: with disciplined context engineering, a smaller model can approach the output quality of a larger model on structured tasks. The ACE framework (ICLR 2026) demonstrated this — a smaller model matched the top-ranked agent by engineering better context.
+This led us to a working definition of expertise that splits into two layers:
 
-This isn't about prompt tricks. It's an engineering discipline: what to select, how to compress, how to score by relevance, how to assess quality gaps, and how to structure for attention.
+Assembly — knowing what to gather, for whom, when. 3 of 5 expert properties live here.
+Reasoning — drawing conclusions from assembled context. Often done by the human, not the model.
 
-We've been applying this at Saarthi across healthcare and incident management. Same discipline, different domains. More on that soon.
+The higher-value problem isn't "how do we make AI reason better." It's "how do we make AI assemble context like an expert would."
 
-I wrote a deeper piece — link in comments.
+We're building this at Saarthi. More on what we've learned — link in comments.
 
-#ContextEngineering #AI #IncidentResponse #OnCall #SoftwareEngineering
+#ContextEngineering #AI #ExpertSystems #IncidentResponse #HealthcareAI

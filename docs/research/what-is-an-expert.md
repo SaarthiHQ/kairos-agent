@@ -72,6 +72,26 @@ Current LLMs have parametric knowledge (from training) and in-context knowledge 
 
 An expert oncologist seeing a patient for the 5th time doesn't re-read the entire history. They know: "Last visit we adjusted the dosing. Let me check if it worked." That's structured, persistent, compounding knowledge. Current architectures don't have it.
 
+## The Assembly-Reasoning Split
+
+A critical realization from deploying in both healthcare and incident management: expertise has two distinct components, and they're often performed by different actors.
+
+**Intelligent assembly** — knowing what context to gather, for whom, at what moment. When a cardiologist refers to a nephrologist, an expert system surfaces creatinine trends and nephrotoxic medications, not the dermatology visit. When a payment service alerts, it pulls logs from the service AND its upstream dependency. This is not reasoning. It's pattern matching on what-context-helps-when.
+
+**Domain reasoning** — given assembled context, drawing conclusions, weighing hypotheses, arriving at actionable decisions.
+
+The critical finding from our field work: **in most high-stakes domains, the human is the reasoner.** Doctors in routine clinical settings rejected AI reasoning. They want to reason themselves. They want the right context at the right time. SREs in some cases want the AI to reason (triage + RCA), but in others they want the context assembled so they can investigate.
+
+This means:
+- **3 of 5 expert properties live in the assembly layer**: domain compression, self-knowledge (what we have and lack), and persistent knowledge
+- **2 of 5 require reasoning**: judgment under ambiguity and principled refusal (though refusal can partially be enforced through assembly — if you don't assemble insufficient context into a confident prompt, the model is less likely to overclaim)
+
+The higher-value, more tractable problem is not "how do we make LLMs reason better" but **"how do we make LLMs assemble context like an expert would."** Assembly is where 60% of the expert value lives. Reasoning is an optional downstream consumer.
+
+An updated definition:
+
+> An expert is a system that assembles the right context for the right question, reasons over it with domain awareness when reasoning is needed, knows the limits of both its assembly and its reasoning, and improves both through experience. In most high-stakes domains, the reasoning is done by a human. The system's expertise is in assembly.
+
 ## Is an Expert a State or a Process?
 
 **Both, in sequence.**
@@ -105,17 +125,19 @@ These are not trivial. A model with the right context, the right constraints, an
 
 ## The Gap: What's Missing
 
-| Property | Current LLMs | With context engineering | Full expert |
-|---|---|---|---|
-| Domain compression | Poor (attends to everything) | Strong (external selection + scoring) | Native (internal attention allocation) |
-| Self-knowledge (what it has) | None | Strong (quality assessment) | Native (epistemic state tracking) |
-| Self-knowledge (what it lacks) | None | Good (explicit gap detection) | Native (imprecise probabilities) |
-| Principled refusal | Cannot (softmax forces output) | Partial (prompt instruction + constraints) | Native (abstention mechanism) |
-| Judgment under ambiguity | Weak (pattern-matches most likely) | Moderate (contradiction detection) | Strong (meta-reasoning over evidence structure) |
-| Persistent knowledge | None (stateless) | Designed (memory layer, v0.4+) | Native (episodic + semantic memory) |
-| Calibrated confidence | Poor (confident when wrong) | Moderate (post-generation override) | Native (evidential deep learning) |
+| Property | Layer | Current LLMs | With context engineering | Full expert |
+|---|---|---|---|---|
+| Domain compression | Assembly | Poor (attends to everything) | Strong (external selection + scoring) | Native (internal attention allocation) |
+| Self-knowledge (what it has) | Assembly | None | Strong (quality assessment) | Native (epistemic state tracking) |
+| Self-knowledge (what it lacks) | Assembly | None | Good (explicit gap detection) | Native (imprecise probabilities) |
+| Principled refusal | Both | Cannot (softmax forces output) | Partial (prompt instruction + constraints) | Native (abstention mechanism) |
+| Judgment under ambiguity | Reasoning | Weak (pattern-matches most likely) | Moderate (contradiction detection) | Strong (meta-reasoning over evidence structure) |
+| Persistent knowledge | Assembly | None (stateless) | Designed (memory layer, v0.4+) | Native (episodic + semantic memory) |
+| Calibrated confidence | Both | Poor (confident when wrong) | Moderate (post-generation override) | Native (evidential deep learning) |
 
-**Context engineering + constraints gets 85-90% of expert behavior on structured tasks.** The remaining 10-15% requires architectural innovation.
+**Assembly properties (3/5)** are addressable with context engineering today. **Reasoning properties (2/5)** require either the human expert (healthcare) or architectural change (SLI).
+
+Context engineering + constraints gets 85-90% of expert behavior on structured tasks. The remaining 10-15% requires architectural innovation — but that 10-15% disproportionately matters in the domains that need it most.
 
 ## Implications
 

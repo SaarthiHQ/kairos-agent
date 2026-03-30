@@ -1,0 +1,114 @@
+[05:55:09.648] [START] ========== KAIROS TRIAGE TRACE ==========
+[05:55:09.671] [CONFIG] Loaded kairos-saarthi.yaml
+[05:55:09.671] [CONFIG] Log sources: 1
+[05:55:09.671] [CONFIG]   Source 0: type=newrelic name=newrelic-saarthi
+[05:55:09.671] [CONFIG] Services: ['saarthi-clinical', 'saarthi-flask', 'saarthi-clinic-production']
+[05:55:09.671] [CONFIG]   saarthi-clinical: tier=critical, deps=['saarthi-flask'], owners=['ramanan'], sources=['newrelic-saarthi']
+[05:55:09.671] [CONFIG]   saarthi-flask: tier=critical, deps=['saarthi-clinical'], owners=['ramanan'], sources=['newrelic-saarthi']
+[05:55:09.671] [CONFIG]   saarthi-clinic-production: tier=standard, deps=['saarthi-clinical'], owners=['ramanan'], sources=['newrelic-saarthi']
+[05:55:09.671] [CONFIG] Context: window=120min, max_lines=500, max_tokens=3000
+[05:55:09.671] [CONFIG] LLM: anthropic/claude-sonnet-4-20250514
+[05:55:09.671] [ALERT] Incident: TRACE-001
+[05:55:09.671] [ALERT] Title: Auth middleware errors on saarthi-clinical staging
+[05:55:09.671] [ALERT] Service: saarthi-clinical
+[05:55:09.671] [ALERT] Urgency: high
+[05:55:09.671] [ALERT] Triggered: 2026-03-30T05:55:09.671911+00:00
+[05:55:09.676] [CLASSIFY] Alert type inferred: error_rate
+[05:55:09.676] [RESOLVE] Sources resolved: 2
+[05:55:09.676] [RESOLVE]   direct: newrelic-saarthi (via saarthi-clinical)
+[05:55:09.676] [RESOLVE]   dependency: newrelic-saarthi (via saarthi-flask)
+[05:55:09.676] [FETCH] Time window: 2026-03-30T03:55:09.671911+00:00 to 2026-03-30T05:55:09.671911+00:00
+[05:55:09.735] [FETCH] Direct sources: 1
+[05:55:10.380] [FETCH]   newrelic:7688224: 172 lines, 645ms, error=None, time_filtered=True
+[05:55:10.380] [FETCH]     Sample: [newrelic] 2026-03-30T11:02:52 [INFO] saarthi-clinical: request
+[05:55:10.380] [FETCH]     Sample: [newrelic] 2026-03-30T11:01:51 [INFO] saarthi-clinical: response
+[05:55:10.380] [FETCH]     Sample: [newrelic] 2026-03-30T11:01:51 [INFO] saarthi-clinical: request
+[05:55:10.380] [FETCH]     ... and 169 more lines
+[05:55:10.380] [FETCH] Dependency sources: 1
+[05:55:10.752] [FETCH]   newrelic:7688224: 0 lines, 371ms, error=None, time_filtered=True
+[05:55:11.460] [COMPRESS+SCORE] Total lines scanned: 8
+[05:55:11.460] [COMPRESS+SCORE] Direct lines after scoring+budget: 4
+[05:55:11.460] [COMPRESS+SCORE] Dependency lines after scoring+budget: 4
+[05:55:11.460] [COMPRESS+SCORE] Error count: 2
+[05:55:11.460] [COMPRESS+SCORE] Alert type: error_rate
+[05:55:11.460] [COMPRESS+SCORE] Service tier: critical
+[05:55:11.460] [COMPRESS+SCORE] Dependencies: ['saarthi-flask']
+[05:55:11.460] [CONTEXT] --- Direct log lines (scored, compressed, budgeted) ---
+[05:55:11.460] [CONTEXT]   [0] [x97] [newrelic] 2026-03-30T11:02:52 [INFO] saarthi-clinical: request
+[05:55:11.460] [CONTEXT]   [1] [x39] [newrelic] 2026-03-30T11:01:51 [INFO] saarthi-clinical: response
+[05:55:11.460] [CONTEXT]   [2] [x18] [newrelic] 2026-03-30T10:52:26 [ERROR] saarthi-clinical: Auth middleware error: {}
+[05:55:11.460] [CONTEXT]   [3] [x18] [newrelic] 2026-03-30T10:52:26 [ERROR] saarthi-clinical: Token verification error: {}
+[05:55:11.460] [CONTEXT] --- Dependency log lines ---
+[05:55:11.460] [CONTEXT]   [dep-0] [x97] [newrelic] 2026-03-30T11:02:52 [INFO] saarthi-clinical: request
+[05:55:11.460] [CONTEXT]   [dep-1] [x39] [newrelic] 2026-03-30T11:01:51 [INFO] saarthi-clinical: response
+[05:55:11.460] [CONTEXT]   [dep-2] [x18] [newrelic] 2026-03-30T10:52:26 [ERROR] saarthi-clinical: Auth middleware error: {}
+[05:55:11.460] [CONTEXT]   [dep-3] [x18] [newrelic] 2026-03-30T10:52:26 [ERROR] saarthi-clinical: Token verification error: {}
+[05:55:11.460] [QUALITY] Sources attempted: 2
+[05:55:11.460] [QUALITY] Sources succeeded: 2
+[05:55:11.460] [QUALITY] Sources failed: 0
+[05:55:11.460] [QUALITY] Sources empty: 0
+[05:55:11.460] [QUALITY] Total lines fetched: 344
+[05:55:11.460] [QUALITY] Coverage ratio: 100%
+[05:55:11.460] [QUALITY]   newrelic:7688224: status=ok, lines=172, 333ms
+[05:55:11.460] [QUALITY]   newrelic:7688224: status=ok, lines=172, 372ms
+[05:55:11.460] [QUALITY] Gaps:
+[05:55:11.460] [QUALITY]   - Only newrelic sources configured — consider adding a metrics source for CPU/memory/latency correlation
+[05:55:11.725] [PROMPT] System prompt: 1517 chars
+[05:55:11.725] [PROMPT] User prompt: 1868 chars
+[05:55:11.725] [PROMPT] Estimated tokens: ~467
+[05:55:11.725] [PROMPT] --- System prompt (first 300 chars) ---
+[05:55:11.725] [PROMPT] <role>
+You are an expert incident triage assistant. You receive incident context (alert details and relevant log lines) and produce a concise triage summary for the on-call engineer.
+</role>
+
+<output_format>
+Your summary must be actionable and scannable in under 30 seconds. Structure it as:
+
+*What's
+[05:55:11.725] [PROMPT] --- User prompt (first 500 chars) ---
+[05:55:11.725] [PROMPT] ## Incident Alert
+- **Title**: Auth middleware errors on saarthi-clinical staging
+- **Service**: saarthi-clinical
+- **Urgency**: high
+- **Triggered at**: 2026-03-30T05:55:09.671911+00:00
+- **PagerDuty URL**: https://one.eu.newrelic.com/alerts-ai/accounts/7688224
+
+## Service Context
+- **Tier**: critical
+- **Owners**: ramanan
+- **Dependencies**: saarthi-flask
+- **Alert type**: error_rate
+
+## Log Context
+- **Time window**: 2026-03-30T03:55:09.671911+00:00 to 2026-03-30T05:55:09.671911+00:00
+- **Lin
+[05:55:11.725] [PROMPT] --- User prompt (last 300 chars) ---
+[05:55:11.725] [PROMPT] clinical: Token verification error: {}
+```
+
+## Task
+Produce a triage summary for the incident "Auth middleware errors on saarthi-clinical staging" affecting **saarthi-clinical** (urgency: high). Focus on error patterns, exceptions, and stack traces. Focus on the evidence above and assess root cause.
+[05:55:11.725] [LLM] Calling claude-sonnet-4-20250514...
+[05:55:20.425] [LLM] Response: 1296 chars in 8701ms
+[05:55:20.425] [LLM] --- Full summary ---
+[05:55:20.425] [LLM]   *What's happening*: Authentication middleware is failing to verify tokens on saarthi-clinical staging, causing high error rates.
+[05:55:20.425] [LLM]   
+[05:55:20.425] [LLM]   *Affected service*: saarthi-clinical (critical tier, staging environment)
+[05:55:20.425] [LLM]   
+[05:55:20.425] [LLM]   *Key evidence*:
+[05:55:20.425] [LLM]   - `Auth middleware error: {}` - 18 occurrences at 10:52:26
+[05:55:20.425] [LLM]   - `Token verification error: {}` - 18 occurrences at same timestamp
+[05:55:20.425] [LLM]   - Both errors show empty payload (`{}`) suggesting missing error details or logging configuration issue
+[05:55:20.425] [LLM]   - Normal request/response activity continuing after the error burst
+[05:55:20.425] [LLM]   
+[05:55:20.425] [LLM]   *Likely root cause*: Token validation service is likely down or misconfigured, or there's an issue with the auth token format/signing keys. The empty error payloads indicate either poor error handling or a logging configuration problem masking the actual error details.
+[05:55:20.425] [LLM]   
+[05:55:20.425] [LLM]   *Suggested next steps*:
+[05:55:20.425] [LLM]   1. Check if the token validation service (likely part of saarthi-flask dependency) is healthy and accessible
+[05:55:20.425] [LLM]   2. Verify auth configuration - signing keys, token endpoints, and middleware settings
+[05:55:20.425] [LLM]   3. Enable detailed error logging to capture the actual error messages instead of empty `{}` objects
+[05:55:20.425] [LLM]   
+[05:55:20.425] [LLM]   *Note*: Limited visibility due to missing error details in logs - consider adding metrics source for performance correlation and fixing error logging to capture actual failure reasons.
+[05:55:20.427] [SLACK] Posting to webhook...
+[05:55:21.409] [SLACK] Posted in 983ms
+[05:55:21.409] [END] ========== TRACE COMPLETE ==========

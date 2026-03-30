@@ -18,7 +18,7 @@ Context engineering starts before the LLM sees anything. It starts with knowing 
 
 ## Two Domains, Same Problem
 
-At Saarthi, we build AI systems for two very different users: doctors in ERs and ICUs, and on-call engineers during production incidents. Different domains. Same bottleneck.
+Saarthi builds expert AI agents and models for high-stakes domains. Two of our first applications serve very different users: doctors in ERs and ICUs, and on-call engineers during production incidents. Different domains. Same bottleneck.
 
 A nephrologist receiving a referral from a cardiologist doesn't need the patient's full history. They need creatinine trends, current medications (especially nephrotoxic ones), and the specific question the cardiologist is asking. A 50-page record is noise. Five relevant data points are signal.
 
@@ -173,7 +173,7 @@ The goal is to make expert-level decisions faster — not to eliminate the exper
 
 The teams that get this right will have measurably better outcomes — lower MTTR for incidents, faster clinical decisions, more accurate triage — not because they use a fancier model, but because they engineer the context that feeds it.
 
-At Saarthi, we've been applying this across healthcare and incident management. The same principles work in both domains. The domain changes. The discipline doesn't.
+Saarthi's expert AI agents and models are built on this discipline — applied across healthcare and incident management today, with more domains ahead. The domain changes. The discipline doesn't.
 
 More on that in a future post.
 

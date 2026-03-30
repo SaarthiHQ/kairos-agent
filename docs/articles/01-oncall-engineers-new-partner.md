@@ -18,7 +18,7 @@ That's not an engineering problem. That's a *context assembly* problem.
 
 I've been thinking about context assembly across two very different domains.
 
-At Saarthi, we build AI assistants for doctors — oncologists, nephrologists, gastroenterologists working in ERs and ICUs where decisions are time-critical and information is scattered across charts, lab results, imaging reports, and clinical guidelines. Incident response is the same problem wearing a different hat. The "patient" is a production system. The "charts" are log files. The "clinical guidelines" are runbooks. And the decision-maker — the on-call engineer — is trying to separate signal from noise before things get worse.
+Saarthi builds expert AI agents and models for high-stakes domains. One of our applications is a clinical assistant for doctors — oncologists, nephrologists, gastroenterologists working in ERs and ICUs where decisions are time-critical and information is scattered across charts, lab results, imaging reports, and clinical guidelines. Incident response is the same problem wearing a different hat. The "patient" is a production system. The "charts" are log files. The "clinical guidelines" are runbooks. And the decision-maker — the on-call engineer — is trying to separate signal from noise before things get worse.
 
 In both cases, the bottleneck isn't skill. It's the time spent *loading context into the decision-maker's brain*.
 
@@ -54,7 +54,7 @@ Let's be honest about the boundaries.
 
 The real promise isn't faster incident response. It's what happens when the reactive work stops consuming all the oxygen. Engineers get to spend time on what actually matters — building resilient systems, improving observability, eliminating failure modes.
 
-The starting point is simpler than you think — a webhook receiver, a context assembler, an LLM call, and a Slack message. We've been building exactly this at Saarthi, applying the same context engineering approach we use in healthcare to incident management. More on that in a future post.
+The starting point is simpler than you think — a webhook receiver, a context assembler, an LLM call, and a Slack message. Saarthi's expert AI agents are built on this foundation — context engineering applied across healthcare and incident management, with more domains ahead. More on that in a future post.
 
 The interesting question isn't whether AI will transform on-call. It's what the on-call role becomes when the reactive work is compressed — when it looks less like firefighting and more like engineering. That's what on-call was always supposed to enable.
 

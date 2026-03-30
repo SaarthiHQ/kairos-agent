@@ -9,7 +9,9 @@
 
 An LLM is a next-token predictor trained on internet-scale text. An expert is a system with calibrated self-knowledge, domain compression, judgment under ambiguity, principled refusal, and persistent knowledge. How do you get from one to the other?
 
-There are six active approaches in the industry and academia. Each addresses a different part of the gap. None of them, alone, closes it.
+Chollet (2019) argued the gap is fundamental: LLMs memorize patterns and replay them, but cannot reason about novel situations. The ARC-AGI benchmark confirms this — frontier models achieve 24% on tasks humans find easy. More troublingly, AbstentionBench (2025) shows that making models better at reasoning makes them 24% worse at knowing when to stop. The gap isn't closing with scale. It may be widening.
+
+There are seven active approaches in the industry and academia. Each addresses a different part of the gap. None of them, alone, closes it.
 
 ---
 
@@ -157,6 +159,35 @@ This is a critical finding for our thesis: **the path to expert behavior is not 
 
 ---
 
+## Approach 7: Program Synthesis / Chollet's Thesis (Build New Solutions, Don't Replay Memorized Ones)
+
+**What it does:** Instead of pattern-matching from training data, generate a *program* (a transformation rule) that solves a new problem from a few examples. Verify the program symbolically. Iterate.
+
+**Key figure:** François Chollet (creator of Keras, founder of Ndea). His "On the Measure of Intelligence" (2019) redefines intelligence as skill-acquisition efficiency — how quickly you learn from limited examples, not how well you perform after seeing billions.
+
+**Architecture (Ndea):** Hybrid neural + discrete program search. The neural component suggests promising candidates. The symbolic component assembles them into programs and verifies them. The key challenge is combinatorial explosion, managed by neural intuition over program space.
+
+**ARC Prize 2025 results that validate this:**
+- CompressARC: **76K parameters**, no pretraining, 20% on ARC-AGI-1 using Minimum Description Length optimization
+- TRM: **7M parameters**, recursive latent refinement, 45% on ARC-AGI-1
+- Both outperform models 1,000-10,000x larger
+
+**What it addresses:**
+- Novel reasoning from few examples (genuine intelligence, not interpolation)
+- Smaller models beating larger ones through structure
+- Verifiable outputs (programs can be checked symbolically)
+
+**What it doesn't address:**
+- Domain expertise (ARC tests general reasoning, not domain knowledge)
+- Principled refusal (program synthesis either finds a program or doesn't — binary, not calibrated)
+- Persistent knowledge across problems
+
+**Expert property coverage:** Strong on ambiguity (generates and verifies multiple hypotheses). Moderate on compression (MDL principle). Weak on self-knowledge, refusal, and persistence.
+
+**Connection to SLI:** Chollet proposes neural + symbolic as separate components. SLI proposes embedding the symbolic into the neural's latent space. Same insight (structure beats scale), different mechanism. Chollet verifies externally; SLI constrains internally.
+
+---
+
 ## The Landscape Map
 
 | Approach | Compression | Self-knowledge | Ambiguity | Refusal | Persistence |
@@ -167,6 +198,7 @@ This is a critical finding for our thesis: **the path to expert behavior is not 
 | Uncertainty quantification | None | **Strong** | None | Moderate | None |
 | Abstention training | None | Moderate | None | **Unsolved** | None |
 | Neuro-symbolic | Weak | Moderate | **Moderate** | **Strong** | Weak |
+| Program synthesis (Chollet) | Moderate | Weak | **Strong** | Weak | Weak |
 
 No single approach covers all five expert properties. The trajectory to expertise requires combining them.
 
@@ -230,10 +262,15 @@ Looking across the landscape, the gap that Saarthi uniquely fills:
 
 4. **The AbstentionBench finding — that reasoning models are WORSE at abstention — validates our architectural thesis.** If making models smarter makes them worse at knowing their limits, then the solution must be structural, not just scaling. That's SLI.
 
+5. **The ARC Prize results show structure beats scale.** CompressARC (76K params) and TRM (7M params) outperform models 1000x larger through MDL optimization and recursive refinement. This is the same thesis as SLI: constrained representations need fewer parameters.
+
 ---
 
 ## Sources
 
+- [Chollet: On the Measure of Intelligence](https://arxiv.org/abs/1911.01547) — 2019
+- [ARC-AGI-2: A New Challenge for Frontier AI Reasoning](https://arxiv.org/abs/2505.11831) — May 2025
+- [ARC Prize 2025 Results and Analysis](https://arcprize.org/blog/arc-prize-2025-results-analysis) — 2025
 - [AbstentionBench: Reasoning LLMs Fail on Unanswerable Questions](https://arxiv.org/abs/2506.09038) — June 2025
 - [Know Your Limits: A Survey of Abstention in LLMs](https://arxiv.org/abs/2407.18418) — TACL 2025
 - [Rewarding Doubt: Behaviorally Calibrated RL for Hallucination](https://arxiv.org/abs/2512.19920) — December 2025

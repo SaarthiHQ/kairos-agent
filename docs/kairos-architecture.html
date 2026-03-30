@@ -6,324 +6,182 @@
     <title>kairos-agent — Architecture & Context Engineering</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a1a; background: #0f172a; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.4; color: #1a1a1a; background: #0f172a; min-height: 100vh; display: flex; flex-direction: column; }
 
-        /* Full-width sections */
-        .hero { background: #0f172a; color: #fff; padding: 80px 40px 60px; text-align: center; }
-        .hero h1 { font-size: 3em; font-weight: 800; margin-bottom: 12px; }
-        .hero .sub { font-size: 1.3em; color: #94a3b8; max-width: 700px; margin: 0 auto; }
-        .hero .version { display: inline-block; background: #4f46e5; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 20px; }
+        /* Header — compact */
+        .header { background: #0f172a; color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+        .header h1 { font-size: 1.4em; font-weight: 800; }
+        .header .sub { font-size: 13px; color: #94a3b8; }
+        .header .badge { background: #4f46e5; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
 
-        section { padding: 60px 40px; }
-        section:nth-child(odd) { background: #fff; }
-        section:nth-child(even) { background: #f8fafc; }
-        .wide { max-width: 1200px; margin: 0 auto; }
-        .narrow { max-width: 800px; margin: 0 auto; }
+        /* Main content — fills viewport */
+        .main { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; background: #f8fafc; }
 
-        h2 { font-size: 2em; font-weight: 800; margin-bottom: 24px; color: #0f172a; }
-        h3 { font-size: 1.2em; font-weight: 700; margin-bottom: 8px; color: #0f172a; }
-        p { margin-bottom: 16px; font-size: 16px; color: #374151; }
-        a { color: #4f46e5; text-decoration: none; }
-
-        /* Flow diagram */
-        .flow { display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap; padding: 40px 0; }
-        .flow-step { background: #fff; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; min-width: 160px; text-align: center; position: relative; }
-        .flow-step h4 { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
-        .flow-step p { font-size: 12px; color: #6b7280; margin: 0; }
-        .flow-step.highlight { border-color: #4f46e5; background: #f0f0ff; }
-        .flow-arrow { font-size: 24px; color: #4f46e5; padding: 0 8px; }
-
-        /* Two-column layout */
-        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
-        @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
-
-        /* Pipeline steps */
-        .pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-        .pipe-step { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; position: relative; }
-        .pipe-step .num { position: absolute; top: -12px; left: 16px; background: #4f46e5; color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
-        .pipe-step h3 { margin-top: 8px; font-size: 15px; }
-        .pipe-step p { font-size: 13px; color: #6b7280; margin-bottom: 0; }
-
-        /* Cards */
-        .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
-        .card h3 { font-size: 16px; }
-        .card .meta { font-size: 12px; color: #9ca3af; margin-bottom: 8px; }
-
-        /* Context engineering section */
-        .ce-principle { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 20px; }
-        .ce-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
-        .ce-icon.select { background: #dbeafe; }
-        .ce-icon.compress { background: #fef3c7; }
-        .ce-icon.score { background: #dcfce7; }
-        .ce-icon.quality { background: #fce7f3; }
-        .ce-icon.structure { background: #e0e7ff; }
-        .ce-text h3 { font-size: 16px; margin-bottom: 4px; }
-        .ce-text p { font-size: 14px; color: #6b7280; margin-bottom: 0; }
-
-        /* Stats bar */
-        .stats { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; padding: 40px 0; }
+        /* Top bar — flow + stats */
+        .topbar { grid-column: 1 / -1; background: #fff; border-bottom: 1px solid #e5e7eb; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+        .flow { display: flex; align-items: center; gap: 6px; }
+        .flow-step { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: #374151; }
+        .flow-step.highlight { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+        .flow-arrow { color: #9ca3af; font-size: 14px; }
+        .stats { display: flex; gap: 24px; }
         .stat { text-align: center; }
-        .stat .num { font-size: 2.5em; font-weight: 800; color: #4f46e5; }
-        .stat .label { font-size: 13px; color: #6b7280; }
+        .stat .n { font-size: 18px; font-weight: 800; color: #4f46e5; }
+        .stat .l { font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
 
-        /* Code block */
-        pre { background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 12px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin-bottom: 16px; }
+        /* Left panel — pipeline + architecture */
+        .left { padding: 20px 24px 20px 32px; overflow-y: auto; border-right: 1px solid #e5e7eb; }
+        .right { padding: 20px 32px 20px 24px; overflow-y: auto; }
+
+        h2 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; margin-bottom: 12px; }
+        h3 { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
+        p { font-size: 12px; color: #6b7280; margin-bottom: 0; }
+
+        /* Pipeline steps — compact grid */
+        .pipeline { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+        .pipe { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; }
+        .pipe .num { display: inline-block; background: #4f46e5; color: #fff; width: 18px; height: 18px; border-radius: 50%; font-size: 10px; font-weight: 700; text-align: center; line-height: 18px; margin-right: 6px; }
+
+        /* Cards — compact */
+        .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+        .card h3 { font-size: 12px; }
+        .card p { font-size: 11px; }
+
+        /* Principles — inline */
+        .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+        .pr { background: #0f172a; border-radius: 8px; padding: 10px 12px; }
+        .pr h3 { color: #fff; font-size: 12px; margin-bottom: 2px; }
+        .pr p { color: #94a3b8; font-size: 11px; }
+        .pr .icon { float: left; margin-right: 8px; font-size: 16px; }
+
+        /* Research — single row */
+        .research { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+        .ref { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 10px; }
+        .ref h3 { font-size: 11px; }
+        .ref .meta { font-size: 10px; color: #9ca3af; }
+        .ref p { font-size: 10px; }
+
+        /* Code — compact */
+        pre { background: #1e293b; color: #e2e8f0; padding: 12px; border-radius: 8px; font-size: 11px; line-height: 1.4; overflow-x: auto; margin-bottom: 12px; }
         code { font-family: 'SF Mono', Monaco, Consolas, monospace; }
 
-        /* Dark section */
-        .dark { background: #0f172a; color: #fff; }
-        .dark h2 { color: #fff; }
-        .dark p { color: #94a3b8; }
-        .dark .card { background: #1e293b; border-color: #334155; }
-        .dark .card h3 { color: #fff; }
-        .dark .card p { color: #94a3b8; }
+        /* Config side by side */
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-        /* Benchmark table */
-        .bench-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .bench-table th { background: #0f172a; color: #fff; padding: 12px; text-align: left; }
-        .bench-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
-        .bench-table tr.winner td { background: #f0fdf4; font-weight: 600; }
-        .bench-table .cost { color: #059669; font-weight: 600; }
+        a { color: #4f46e5; text-decoration: none; font-size: 11px; }
 
-        /* Footer */
-        .footer { background: #0f172a; color: #64748b; padding: 40px; text-align: center; font-size: 14px; }
-        .footer a { color: #818cf8; }
+        @media (max-width: 900px) {
+            .main { grid-template-columns: 1fr; }
+            .left { border-right: none; border-bottom: 1px solid #e5e7eb; }
+            .topbar { flex-direction: column; gap: 12px; }
+        }
     </style>
 </head>
 <body>
 
-<!-- Hero -->
-<div class="hero">
-    <h1>kairos-agent</h1>
-    <p class="sub">AI-powered incident context assembler. Pulls logs from your observability tools, engineers the context, and delivers a triage brief in 30 seconds.</p>
-    <span class="version">v0.3.0 &middot; Open Source &middot; Apache 2.0</span>
+<!-- Header -->
+<div class="header">
+    <div>
+        <h1>kairos-agent</h1>
+        <span class="sub">AI-powered incident context assembler</span>
+    </div>
+    <div class="header-right">
+        <span class="badge">v0.3.0</span>
+        <a href="https://github.com/SaarthiHQ/kairos-agent" style="color: #94a3b8; font-size: 12px;">GitHub</a>
+    </div>
 </div>
 
-<!-- High-level flow -->
-<section>
-    <div class="wide">
-        <h2 style="text-align: center;">How It Works</h2>
-        <div class="flow">
-            <div class="flow-step">
-                <h4>Alert Fires</h4>
-                <p>New Relic, PagerDuty,<br>or /kairos in Slack</p>
-            </div>
-            <span class="flow-arrow">&rarr;</span>
-            <div class="flow-step highlight">
-                <h4>Context Engine</h4>
-                <p>Discover, fetch, compress,<br>score, structure</p>
-            </div>
-            <span class="flow-arrow">&rarr;</span>
-            <div class="flow-step">
-                <h4>Claude</h4>
-                <p>Triage summary with<br>confidence assessment</p>
-            </div>
-            <span class="flow-arrow">&rarr;</span>
-            <div class="flow-step">
-                <h4>Slack</h4>
-                <p>30-second read for<br>the on-call engineer</p>
-            </div>
-        </div>
+<!-- Top bar: flow + stats -->
+<div class="topbar">
+    <div class="flow">
+        <span class="flow-step">Alert</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step highlight">Context Engine</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">Claude</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">Slack</span>
     </div>
-</section>
-
-<!-- Stats -->
-<section style="background: #4f46e5; color: #fff;">
     <div class="stats">
-        <div class="stat"><div class="num" style="color: #fff;">94</div><div class="label" style="color: #c7d2fe;">Tests passing</div></div>
-        <div class="stat"><div class="num" style="color: #fff;">6</div><div class="label" style="color: #c7d2fe;">Source connectors</div></div>
-        <div class="stat"><div class="num" style="color: #fff;">65%</div><div class="label" style="color: #c7d2fe;">Log compression ratio</div></div>
-        <div class="stat"><div class="num" style="color: #fff;">24x</div><div class="label" style="color: #c7d2fe;">Cost reduction with<br>context engineering</div></div>
+        <div class="stat"><div class="n">94</div><div class="l">Tests</div></div>
+        <div class="stat"><div class="n">6</div><div class="l">Connectors</div></div>
+        <div class="stat"><div class="n">65%</div><div class="l">Compression</div></div>
+        <div class="stat"><div class="n">24x</div><div class="l">Cost Reduction</div></div>
     </div>
-</section>
+</div>
 
-<!-- Context Engineering Pipeline -->
-<section>
-    <div class="wide">
-        <h2>The Context Engineering Pipeline</h2>
-        <p style="max-width: 700px; margin-bottom: 32px;">Most tools dump logs into an LLM. kairos engineers the context through 8 stages before the model sees a single token.</p>
+<!-- Main: two columns -->
+<div class="main">
 
-        <div class="pipeline">
-            <div class="pipe-step"><div class="num">1</div><h3>Resolve</h3><p>Service catalog + dependency graph &rarr; which sources to query</p></div>
-            <div class="pipe-step"><div class="num">2</div><h3>Classify</h3><p>Infer alert type (error_rate / latency / availability) from title</p></div>
-            <div class="pipe-step"><div class="num">3</div><h3>Fetch</h3><p>Parallel multi-source: NR, Datadog, Loki, HTTP, files. Track quality.</p></div>
-            <div class="pipe-step"><div class="num">4</div><h3>Compress</h3><p>Dedup, pattern normalize, repetition collapse. [x47] connection refused</p></div>
-            <div class="pipe-step"><div class="num">5</div><h3>Score</h3><p>Keyword + alert-type boosts. Dependency lines at 70% priority.</p></div>
-            <div class="pipe-step"><div class="num">6</div><h3>Budget</h3><p>Token-aware selection. 10K budget. Every token earns its place.</p></div>
-            <div class="pipe-step"><div class="num">7</div><h3>Prompt</h3><p>Structured with triple repetition. Situation &rarr; quality &rarr; evidence &rarr; task.</p></div>
-            <div class="pipe-step"><div class="num">8</div><h3>Assess</h3><p>Quality report: which sources succeeded, failed, or returned empty.</p></div>
-        </div>
-    </div>
-</section>
+<!-- LEFT: Pipeline + Architecture -->
+<div class="left">
 
-<!-- Architecture: Two-column -->
-<section style="background: #f8fafc;">
-    <div class="wide">
-        <h2>Architecture</h2>
-        <div class="two-col">
-            <div>
-                <h3>Triggers (Inbound)</h3>
-                <div class="card"><h3>POST /webhook/newrelic</h3><p>New Relic alert notifications. Auto-extracts service, severity, condition.</p></div>
-                <div class="card"><h3>POST /webhook/pagerduty</h3><p>PagerDuty V3 webhooks with HMAC-SHA256 signature validation.</p></div>
-                <div class="card"><h3>POST /slack/command</h3><p>/kairos investigate &lt;service&gt; &mdash; on-demand triage from Slack.</p></div>
+<h2>Context Engineering Pipeline</h2>
+<div class="pipeline">
+    <div class="pipe"><span class="num">1</span><h3>Resolve</h3><p>Service catalog &rarr; which sources</p></div>
+    <div class="pipe"><span class="num">2</span><h3>Classify</h3><p>Alert type from title keywords</p></div>
+    <div class="pipe"><span class="num">3</span><h3>Fetch</h3><p>Parallel multi-source + quality</p></div>
+    <div class="pipe"><span class="num">4</span><h3>Compress</h3><p>Dedup, normalize, collapse</p></div>
+    <div class="pipe"><span class="num">5</span><h3>Score</h3><p>Keywords + alert-type boosts</p></div>
+    <div class="pipe"><span class="num">6</span><h3>Budget</h3><p>10K token-aware selection</p></div>
+    <div class="pipe"><span class="num">7</span><h3>Prompt</h3><p>Structured + triple repetition</p></div>
+    <div class="pipe"><span class="num">8</span><h3>Assess</h3><p>Quality gaps &rarr; confidence</p></div>
+</div>
 
-                <h3 style="margin-top: 24px;">Source Connectors</h3>
-                <div class="card"><h3>6 built-in connectors</h3><p>New Relic (NerdGraph NRQL), Datadog (Logs API v2), Grafana Loki (query_range), Generic HTTP/REST, File (glob patterns). Extensible via Source protocol.</p></div>
-            </div>
-            <div>
-                <h3>Intelligence Layer</h3>
-                <div class="card">
-                    <h3>Service Catalog</h3>
-                    <p>Services declare dependencies, owners, tiers, and source mappings. When payment-service alerts, kairos also pulls logs from stripe-gateway and postgres.</p>
-                </div>
-                <div class="card">
-                    <h3>Alert-Type Scoring</h3>
-                    <p>Error rate &rarr; boost stack traces. Latency &rarr; boost timeouts. Availability &rarr; boost OOM/SIGKILL. Scoring adapts to what the alert is about.</p>
-                </div>
-                <div class="card">
-                    <h3>Quality Assessment</h3>
-                    <p>Reports what's missing, not just what's found. "Datadog returned 403." "No ERROR lines despite error alert." Claude factors gaps into confidence.</p>
-                </div>
-                <div class="card">
-                    <h3>Level 1 Compression</h3>
-                    <p>Dedup identical lines [x47]. Normalize timestamps/UUIDs/IPs. Collapse repetitive patterns. 173 lines &rarr; 61 (65% reduction).</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<h2>Triggers &amp; Sources</h2>
+<div class="card"><h3>Webhooks</h3><p>New Relic &middot; PagerDuty (HMAC) &middot; Slack /kairos investigate &lt;service&gt;</p></div>
+<div class="card"><h3>Source Connectors</h3><p>New Relic (NerdGraph) &middot; Datadog (Logs v2) &middot; Grafana Loki &middot; Generic HTTP &middot; File (glob)</p></div>
+<div class="card"><h3>Service Catalog</h3><p>Services &rarr; dependencies &rarr; owners &rarr; tiers &rarr; per-service source mapping. Dependency logs fetched automatically.</p></div>
 
-<!-- Context Engineering Principles -->
-<section class="dark">
-    <div class="wide">
-        <h2>Context Engineering Principles</h2>
-        <p style="max-width: 700px; margin-bottom: 32px;">Based on research from Stanford, IBM Research, Google Research, and Anthropic. Every design decision in kairos maps to an empirically validated principle.</p>
+<h2 style="margin-top: 16px;">Quickstart</h2>
+<pre><code>pip install .
+kairos-agent setup                    # interactive
+kairos-agent test --service your-svc  # validate
+kairos-agent --tunnel                 # go live</code></pre>
 
-        <div class="two-col">
-            <div>
-                <div class="ce-principle">
-                    <div class="ce-icon select">&#x1F50D;</div>
-                    <div class="ce-text"><h3 style="color:#fff;">Selection (WSCI)</h3><p>Service catalog resolves which sources to query. Don't fetch everything &mdash; fetch what's relevant to this service and its dependencies.</p></div>
-                </div>
-                <div class="ce-principle">
-                    <div class="ce-icon compress">&#x1F5DC;</div>
-                    <div class="ce-text"><h3 style="color:#fff;">Compression (WSCI)</h3><p>500 compressed lines > 5,000 raw lines. Dedup, pattern normalization, repetition collapse. Zero LLM cost.</p></div>
-                </div>
-                <div class="ce-principle">
-                    <div class="ce-icon score">&#x1F3AF;</div>
-                    <div class="ce-text"><h3 style="color:#fff;">Scoring</h3><p>Alert-type-aware relevance ranking. ERROR +10, service mention +5, plus alert-specific boosts. Token budget enforced.</p></div>
-                </div>
-            </div>
-            <div>
-                <div class="ce-principle">
-                    <div class="ce-icon quality">&#x26A0;</div>
-                    <div class="ce-text"><h3 style="color:#fff;">Quality Assessment</h3><p>The model needs to know its blind spots. Report failed sources, empty results, and missing data types so it can calibrate confidence.</p></div>
-                </div>
-                <div class="ce-principle">
-                    <div class="ce-icon structure">&#x1F4CB;</div>
-                    <div class="ce-text"><h3 style="color:#fff;">Prompt Structure</h3><p>Triple repetition (Leviathan et al., 2025): key context at start, mid-log anchor, and end. 47/70 accuracy wins, 0 losses.</p></div>
-                </div>
-                <div class="ce-principle">
-                    <div class="ce-icon select">&#x1F4B0;</div>
-                    <div class="ce-text"><h3 style="color:#fff;">Model Tier Arbitrage</h3><p>Engineered context + Haiku matches raw dump + Opus on structured tasks. 24x cost reduction. ACE (ICLR 2026) validates this.</p></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+</div>
 
-<!-- Research backing -->
-<section>
-    <div class="wide">
-        <h2>Research Foundation</h2>
-        <div class="two-col">
-            <div>
-                <div class="card">
-                    <h3>Lost in the Middle</h3>
-                    <div class="meta">Liu et al. &middot; Stanford &middot; 2023</div>
-                    <p>U-shaped attention curve. 20+ documents in context drops performance below no-context baseline. More data = worse results.</p>
-                </div>
-                <div class="card">
-                    <h3>Needle in the Haystack</h3>
-                    <div class="meta">Nelson et al. &middot; IBM Research &middot; 2024</div>
-                    <p>Simple fact retrieval breaks down as context length increases. Longer window = more noise = worse recall.</p>
-                </div>
-            </div>
-            <div>
-                <div class="card">
-                    <h3>Prompt Repetition</h3>
-                    <div class="meta">Leviathan et al. &middot; Google Research &middot; 2025</div>
-                    <p>Repeating the query improves accuracy in 47/70 tests with 0 regressions. Prompt structure is functional, not cosmetic.</p>
-                </div>
-                <div class="card">
-                    <h3>AI vs Human Code Quality</h3>
-                    <div class="meta">CodeRabbit &middot; 2026</div>
-                    <p>AI output has 1.7x more issues. "Input quality directly correlates with output reliability." Context engineering is the guardrail.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<!-- RIGHT: Principles + Research + Config -->
+<div class="right">
 
-<!-- Quick start -->
-<section class="dark">
-    <div class="narrow">
-        <h2>5-Minute Quickstart</h2>
-<pre><code># Install
-pip install .
+<h2>Context Engineering Principles</h2>
+<div class="principles">
+    <div class="pr"><span class="icon">&#x1F50D;</span><h3>Select</h3><p>Fetch what's relevant. Service catalog resolves sources + deps.</p></div>
+    <div class="pr"><span class="icon">&#x1F5DC;</span><h3>Compress</h3><p>500 deduplicated &gt; 5,000 raw. Pattern normalize, collapse repeats.</p></div>
+    <div class="pr"><span class="icon">&#x1F3AF;</span><h3>Score</h3><p>Alert-type-aware. ERROR +10 for error alerts, timeout +8 for latency.</p></div>
+    <div class="pr"><span class="icon">&#x26A0;</span><h3>Quality</h3><p>Report what's missing. Failed sources, empty results, data gaps.</p></div>
+    <div class="pr"><span class="icon">&#x1F4CB;</span><h3>Structure</h3><p>Triple prompt repetition. 47/70 wins, 0 losses (Leviathan et al.).</p></div>
+    <div class="pr"><span class="icon">&#x1F4B0;</span><h3>Arbitrage</h3><p>Eng+Haiku matches Raw+Opus. 24x cheaper. ACE (ICLR 2026) validates.</p></div>
+</div>
 
-# Interactive setup
-kairos-agent setup
+<h2>Research Foundation</h2>
+<div class="research">
+    <div class="ref"><h3>Lost in the Middle</h3><span class="meta">Stanford 2023</span><p>U-shaped attention. 20+ docs drops below no-context baseline.</p></div>
+    <div class="ref"><h3>Needle in the Haystack</h3><span class="meta">IBM Research 2024</span><p>Retrieval breaks down as context grows. More noise = worse.</p></div>
+    <div class="ref"><h3>Prompt Repetition</h3><span class="meta">Google Research 2025</span><p>Repeating query: 47/70 accuracy wins, zero regressions.</p></div>
+    <div class="ref"><h3>AI Code Quality</h3><span class="meta">CodeRabbit 2026</span><p>1.7x more issues. "Input quality correlates with output reliability."</p></div>
+</div>
 
-# Test locally
-kairos-agent test --config kairos.yaml --service your-service
-
-# Start with public tunnel (receives webhooks from NR/Slack)
-export ANTHROPIC_API_KEY="sk-ant-..."
-kairos-agent --config kairos.yaml --tunnel</code></pre>
-        <p>The tunnel prints webhook URLs. Copy them into New Relic and Slack. Done.</p>
-    </div>
-</section>
-
-<!-- Config example -->
-<section>
-    <div class="wide">
-        <h2>Configuration</h2>
-        <div class="two-col">
-            <div>
-                <h3>Service Catalog</h3>
+<h2>Configuration</h2>
+<div class="config-grid">
 <pre><code>services:
   payment-service:
-    depends_on: [stripe-gateway, postgres]
-    owners: [payments-team]
-    sources: [newrelic-prod]
-    tier: critical
-
-  stripe-gateway:
-    sources: [newrelic-prod]
+    depends_on: [stripe-gw]
+    owners: [payments]
+    sources: [nr-prod]
     tier: critical</code></pre>
-            </div>
-            <div>
-                <h3>Source Connectors</h3>
 <pre><code>log_sources:
-  - name: newrelic-prod
+  - name: nr-prod
     type: newrelic
     credentials:
-      api_key: "${NEW_RELIC_API_KEY}"
+      api_key: "${NR_KEY}"
     options:
-      account_id: "1234567"
-      region: "eu"
-      query: "SELECT timestamp, message, level
-              FROM Log
-              WHERE service = '{service_name}'"</code></pre>
-            </div>
-        </div>
-    </div>
-</section>
+      account_id: "123"</code></pre>
+</div>
 
-<!-- Footer -->
-<div class="footer">
-    <p><a href="https://github.com/SaarthiHQ/kairos-agent">GitHub: SaarthiHQ/kairos-agent</a> &middot; Apache 2.0 &middot; Built by <a href="https://www.linkedin.com/in/ramanansiva">Ramanan Sivasubramanian</a> at <a href="https://saarthihealth.com">Saarthi</a></p>
+<p style="margin-top: 12px;"><a href="https://github.com/SaarthiHQ/kairos-agent">GitHub</a> &middot; <a href="https://www.linkedin.com/in/ramanansiva">LinkedIn</a> &middot; <a href="https://saarthihealth.com">Saarthi</a> &middot; Apache 2.0</p>
+
+</div>
 </div>
 
 </body>

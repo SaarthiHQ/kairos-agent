@@ -25,6 +25,7 @@ class FetchedLines:
     line_count: int
     fetch_duration_ms: float
     error: str | None = None
+    time_filtered: bool = False  # True if source already filtered by time (API sources)
 
 
 @runtime_checkable

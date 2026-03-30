@@ -265,8 +265,13 @@ def _fetch_and_score(
             compressed = compress_lines(fetched.lines)
 
             for line in compressed:
-                ts = parse_timestamp(line)
-                in_window = ts is None or (window_start <= ts <= window_end)
+                # API sources (NR, Datadog, Loki) already filter by time via
+                # their query — skip re-filtering to avoid timestamp mismatch.
+                if fetched.time_filtered:
+                    in_window = True
+                else:
+                    ts = parse_timestamp(line)
+                    in_window = ts is None or (window_start <= ts <= window_end)
                 if in_window:
                     score = _score_line(line, service_name, alert_type)
                     if relationship == "dependency":

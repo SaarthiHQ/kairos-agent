@@ -109,4 +109,5 @@ class LokiSource:
             source_name=self.name,
             line_count=len(all_lines),
             fetch_duration_ms=elapsed,
+            time_filtered=True,
         )

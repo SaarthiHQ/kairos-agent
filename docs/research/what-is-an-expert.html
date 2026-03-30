@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is an Expert? — Saarthi</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.5;color:#1a1a1a;background:#0f172a;min-height:100vh;display:flex;flex-direction:column}
+
+        .header{background:#0f172a;color:#fff;padding:16px 32px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e293b}
+        .header h1{font-size:1.2em;font-weight:800}
+        .header .sub{font-size:11px;color:#64748b}
+
+        .main{flex:1;display:grid;grid-template-columns:1fr 1fr;background:#f8fafc}
+        @media(max-width:900px){.main{grid-template-columns:1fr}}
+
+        .col{padding:20px 24px;overflow-y:auto}
+        .col:first-child{border-right:1px solid #e5e7eb}
+
+        h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid #e5e7eb}
+        h2:first-child{margin-top:0}
+        h3{font-size:13px;font-weight:700;color:#0f172a;margin:0 0 3px}
+        p{font-size:12px;color:#374151;margin-bottom:8px}
+        .small{font-size:11px;color:#6b7280}
+
+        /* Property cards */
+        .prop{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:8px;position:relative}
+        .prop .layer{position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;text-transform:uppercase;letter-spacing:.04em}
+        .layer.assembly{background:#dbeafe;color:#1d4ed8}
+        .layer.reasoning{background:#fce7f3;color:#9d174d}
+        .layer.both{background:#fef3c7;color:#92400e}
+        .prop .example{background:#f8fafc;border-left:2px solid #e5e7eb;padding:6px 10px;margin:6px 0;font-size:11px;color:#6b7280;font-style:italic}
+        .prop .example .junior{color:#9ca3af}
+        .prop .example .expert{color:#0f172a;font-weight:600;font-style:normal}
+        .prop .math{background:#fef2f2;border-left:2px solid #dc2626;padding:6px 10px;margin:6px 0;font-size:11px;color:#374151}
+
+        /* Split section */
+        .split-box{background:#0f172a;border-radius:8px;padding:14px;margin-bottom:12px;color:#fff}
+        .split-box h3{color:#fff;font-size:13px;margin-bottom:6px}
+        .split-box p{color:#94a3b8;font-size:12px}
+        .split-box .highlight{color:#fff;font-weight:600}
+        .split-box .quote{border-left:2px solid #4f46e5;padding-left:10px;margin:8px 0;font-style:italic;color:#cbd5e1;font-size:11px}
+
+        /* Gap table */
+        .gap{width:100%;border-collapse:collapse;font-size:10px;margin:8px 0;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb}
+        .gap th{background:#0f172a;color:#fff;padding:6px 8px;text-align:left;font-weight:600}
+        .gap td{padding:5px 8px;border-bottom:1px solid #f3f4f6}
+        .gap .y{color:#059669;font-weight:600}
+        .gap .p{color:#f59e0b;font-weight:600}
+        .gap .n{color:#d1d5db}
+
+        /* State/process */
+        .trajectory{display:flex;gap:6px;margin:8px 0}
+        .traj-step{flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:8px;text-align:center}
+        .traj-step .label{font-size:10px;font-weight:700;color:#4f46e5}
+        .traj-step .desc{font-size:10px;color:#6b7280}
+        .traj-step .arrow{color:#9ca3af;font-size:16px}
+
+        /* Implications */
+        .impl{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-bottom:6px}
+        .impl .pct{font-size:22px;font-weight:800;color:#4f46e5;float:left;margin-right:10px;line-height:1}
+        .impl p{font-size:11px;margin:0}
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div><h1>What Is an Expert?</h1><span class="sub">A working definition for Saarthi &middot; March 2026</span></div>
+    <span class="sub">Internal Research</span>
+</div>
+
+<div class="main">
+
+<!-- LEFT COLUMN: Five Properties -->
+<div class="col">
+
+<h2>Five Properties of an Expert</h2>
+
+<div class="prop">
+    <span class="layer assembly">Assembly</span>
+    <h3>1. Calibrated Self-Knowledge</h3>
+    <p>Knows the boundary of competence — precisely, not vaguely.</p>
+    <div class="example">
+        <div class="junior">Junior: "I think this could be serious."</div>
+        <div class="expert">Expert: "I can't differentiate X from Y without creatinine. Order that first."</div>
+    </div>
+    <p>Two components: knowing what you have, and knowing what you lack. The second is harder and more valuable.</p>
+    <div class="math">Softmax forces P(token) to sum to 1. No "I don't know" in output space. The model must always commit.</div>
+</div>
+
+<div class="prop">
+    <span class="layer assembly">Assembly</span>
+    <h3>2. Domain Compression</h3>
+    <p>Doesn't process more data — processes the <em>right</em> data. 5,000 log lines → the 5 that matter.</p>
+    <div class="example">
+        <div class="junior">Junior: checks every dashboard</div>
+        <div class="expert">Expert: eyes go straight to the one metric that matters</div>
+    </div>
+    <p>Information theory: experts have lower entropy within their domain. They know which distinctions matter.</p>
+</div>
+
+<div class="prop">
+    <span class="layer reasoning">Reasoning</span>
+    <h3>3. Judgment Under Ambiguity</h3>
+    <p>When evidence contradicts, reasons about <em>why</em> — doesn't average signals.</p>
+    <div class="example">
+        <div class="junior">Novice: "Logs show no errors but metrics show 50% error rate. Conflicting data."</div>
+        <div class="expert">Expert: "The logging system is broken, not the service. Fix observability first."</div>
+    </div>
+    <p>Requires meta-reasoning: thinking about the structure of evidence, not just content.</p>
+</div>
+
+<div class="prop">
+    <span class="layer both">Both</span>
+    <h3>4. Principled Refusal</h3>
+    <p><strong>The defining property.</strong> An expert is defined by what they refuse to do.</p>
+    <div class="example">
+        <div class="expert">Doctor: "I need an MRI before I can tell you. Acting without it risks misdiagnosis."</div>
+        <div class="expert">SRE: "I don't have enough to act safely. Let me gather more data."</div>
+    </div>
+    <p>Novices act to demonstrate competence. Experts refuse to demonstrate it.</p>
+    <div class="math">Transformer architecture makes this structurally impossible. Softmax forces output. Training rewards fluency over abstention.</div>
+</div>
+
+<div class="prop">
+    <span class="layer assembly">Assembly</span>
+    <h3>5. Persistent Compounding Knowledge</h3>
+    <p>Doesn't start from zero. Carries structured knowledge across interactions.</p>
+    <div class="example">
+        <div class="expert">Oncologist on visit #5: "Last time we adjusted the dosing. Let me check if it worked."</div>
+    </div>
+    <p>Episodic + semantic + procedural memory. Current LLMs have none — every conversation starts fresh.</p>
+</div>
+
+</div>
+
+<!-- RIGHT COLUMN: Split, Gap, State/Process, Implications -->
+<div class="col">
+
+<h2>The Assembly-Reasoning Split</h2>
+
+<div class="split-box">
+    <h3>The critical finding from field deployment</h3>
+    <p>Expertise has two components, often performed by <span class="highlight">different actors</span>:</p>
+    <p><span class="highlight">Intelligent assembly</span> — knowing what context to gather, for whom, when. Not reasoning. Pattern matching on what-context-helps-when.</p>
+    <p><span class="highlight">Domain reasoning</span> — given assembled context, drawing conclusions and deciding actions.</p>
+    <p><span class="highlight">In most high-stakes domains, the human is the reasoner.</span> Doctors rejected AI reasoning. They want the right context at the right time.</p>
+    <div class="quote">3 of 5 expert properties live in assembly. 2 require reasoning. Assembly is where 60% of the expert value lives. Reasoning is an optional downstream consumer.</div>
+</div>
+
+<div class="split-box" style="background:#1e293b">
+    <h3>Updated definition</h3>
+    <div class="quote" style="border-color:#818cf8;font-size:12px;color:#e2e8f0">An expert is a system that assembles the right context for the right question, reasons over it with domain awareness when reasoning is needed, knows the limits of both its assembly and its reasoning, and improves both through experience.</div>
+</div>
+
+<h2>The Gap</h2>
+
+<table class="gap">
+    <thead><tr><th>Property</th><th>Layer</th><th>LLMs</th><th>+Context Eng</th><th>Full Expert</th></tr></thead>
+    <tbody>
+        <tr><td>Compression</td><td><span class="layer assembly" style="position:static;font-size:8px">Asm</span></td><td class="n">Poor</td><td class="y">Strong</td><td>Native</td></tr>
+        <tr><td>Self-knowledge</td><td><span class="layer assembly" style="position:static;font-size:8px">Asm</span></td><td class="n">None</td><td class="y">Good</td><td>Native</td></tr>
+        <tr><td>Refusal</td><td><span class="layer both" style="position:static;font-size:8px">Both</span></td><td class="n">Cannot</td><td class="p">Partial</td><td>Native</td></tr>
+        <tr><td>Ambiguity</td><td><span class="layer reasoning" style="position:static;font-size:8px">Rsn</span></td><td class="n">Weak</td><td class="p">Moderate</td><td>Strong</td></tr>
+        <tr><td>Persistence</td><td><span class="layer assembly" style="position:static;font-size:8px">Asm</span></td><td class="n">None</td><td class="p">Planned</td><td>Native</td></tr>
+        <tr><td>Calibration</td><td><span class="layer both" style="position:static;font-size:8px">Both</span></td><td class="n">Poor</td><td class="p">Moderate</td><td>Native</td></tr>
+    </tbody>
+</table>
+<p class="small">Assembly properties (3/5) addressable today. Reasoning properties (2/5) require the human expert or architectural change.</p>
+
+<h2>State or Process?</h2>
+<p>Both, in sequence.</p>
+<div class="trajectory">
+    <div class="traj-step"><div class="label">Configuration</div><div class="desc">Domain rules, entity graph, procedures</div></div>
+    <div class="traj-step"><div class="label">Calibration</div><div class="desc">Tune scoring, test outputs, adjust</div></div>
+    <div class="traj-step"><div class="label">Learning</div><div class="desc">Feedback loops, pattern memory</div></div>
+    <div class="traj-step"><div class="label">Expertise</div><div class="desc">Intuition from accumulated experience</div></div>
+</div>
+<p class="small">Dreyfus model: Novice → Competent (state) → Proficient → Expert (process). Current LLMs are between 2-3. The gap is 4-5.</p>
+
+<h2>Implications</h2>
+
+<div class="impl">
+    <div class="pct">85%</div>
+    <p><strong>Buildable now.</strong> Context engineering + constraints covers 85-90% of expert behavior on structured tasks. Commercially valuable today.</p>
+</div>
+<div class="impl">
+    <div class="pct">15%</div>
+    <p><strong>Research frontier.</strong> Principled refusal, meta-reasoning, calibrated confidence. Requires architectural change. Disproportionately matters where it's needed most.</p>
+</div>
+<div class="impl">
+    <div class="pct" style="font-size:16px;color:#059669">→</div>
+    <p><strong>The bridge:</strong> Constraint layer — mandatory citations, contradiction detection, negation rules. Not guaranteed, but significantly safer than unconstrained generation.</p>
+</div>
+
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,6 +1,7 @@
 # What Is an Expert? A Working Definition for Saarthi
 
 **Ramanan Sivasubramanian — March 30, 2026**
+**Internal document — shared definition for Saarthi research direction**
 
 ---
 
@@ -8,199 +9,124 @@
 
 We want to build AI systems that behave like domain experts — in healthcare, in incident management, and eventually in other domains. Current LLMs don't qualify. They're fluent but not expert. The question is: what exactly is the gap, and what would it take to close it?
 
-## Four Properties of an Expert
+## Five Properties of an Expert
 
 ### 1. Calibrated self-knowledge
 
-An expert knows the boundary of their competence. Not just "low confidence" — but precisely what they need to make a call and what happens without it.
+An expert knows the boundary of their competence — not vaguely, but precisely.
 
 A junior doctor says: "I think this could be serious."
-An expert says: "I can't differentiate between X and Y without a creatinine level. Order that first."
+An expert says: "I can't differentiate between X and Y without a creatinine level. Order that first. Until then, I will not speculate."
 
 A junior SRE says: "Looks like a database issue."
-An expert says: "The logs show timeouts but the metrics show normal latency. That means the instrumentation is broken, not the database. Check the metrics pipeline."
+An expert says: "The logs show timeouts but the metrics show normal latency. That means the instrumentation is broken, not the database. I need to see the metrics pipeline before I can triage the service."
 
-**The mathematical problem:** Current transformers have no epistemic state. They can't distinguish "I have strong evidence for this" from "I'm pattern-completing because I have to produce something." The softmax function forces a probability distribution that always sums to 1 — there is no "I don't know" in the output space.
+Self-knowledge has two components:
+- **Knowing what you have** — "I have these 5 data points, they point to this conclusion"
+- **Knowing what you lack** — "I don't have deploy data, so I cannot rule out a deploy regression"
+
+The second component is what current LLMs fundamentally cannot do. The softmax function forces a probability distribution that always sums to 1. There is no "I don't know" in the output space. The model must always commit to a prediction, even when it has no basis for one.
 
 ### 2. Domain compression
 
-An expert doesn't process more data. They process the right data. They look at 5,000 log lines and their attention goes to the 5 that matter. They read a 50-page patient history and extract the 3 findings relevant to the current complaint.
+An expert doesn't process more data than a novice. They process the *right* data. They look at 5,000 log lines and their attention goes to the 5 that matter. They read a 50-page patient history and extract the 3 findings relevant to the current complaint.
 
-This is an information-theoretic property: experts have lower entropy in their predictions within their domain. They've learned which distinctions matter and which don't.
+From information theory: experts have **lower entropy in their predictions within their domain**. They've learned which distinctions matter and which don't. A novice treats all lab values equally. An expert knows that a creatinine of 2.8 in a diabetic patient is urgent, while the same value post-surgery might be expected and transient.
 
-**This is what context engineering does.** Selection, compression, scoring — these are external implementations of the compression that an expert does internally. The framework IS the domain compression layer.
+This is the property that context engineering addresses most directly. Selection, compression, scoring — these are external implementations of the compression that an expert does internally. The framework is, in effect, a domain compression layer.
 
 ### 3. Judgment under ambiguity
 
 When evidence contradicts, an expert doesn't average the signals or pick the loudest one. They reason about *why* the signals contradict.
 
-"The logs say no errors but the error rate metric is at 50%. A novice would say 'conflicting data.' An expert recognizes: the logging system is broken, not the service. Fix the observability before triaging the incident."
+"The logs say no errors but the error rate metric is at 50%. A novice says 'conflicting data.' An expert recognizes: the logging system is broken, not the service."
 
-"The patient's symptoms suggest diagnosis A, but their age and history make B more likely. A novice picks A (matches symptoms). An expert orders a specific test that distinguishes A from B."
+"The patient's symptoms suggest diagnosis A, but their age and history make B more likely. A novice picks A (matches symptoms). An expert orders a specific test that distinguishes A from B before committing."
 
-**This requires reasoning over the structure of evidence, not just the content.** It's meta-reasoning — thinking about why you're seeing what you're seeing.
+This requires **meta-reasoning** — thinking about the structure of the evidence, not just its content. Why am I seeing what I'm seeing? What would I expect to see if hypothesis A were true vs hypothesis B? Which data point, if different, would change my conclusion?
+
+Current LLMs can do this when explicitly prompted ("consider alternative hypotheses"). But they don't do it natively. They pattern-match to the most statistically likely conclusion from training data, not from first-principles reasoning about the specific evidence at hand.
 
 ### 4. Principled refusal
 
 This is the defining property. **An expert is defined as much by what they refuse to do as by what they do.**
 
-A good doctor doesn't guess when they don't have enough data. They say: "I need an MRI before I can tell you what's wrong." A good SRE doesn't deploy a speculative fix at 3am. They say: "I don't have enough information to act. Let me gather more data before we make this worse."
+A good doctor doesn't guess when they don't have enough data. They say: "I need an MRI before I can tell you what's wrong. Acting without it risks misdiagnosis."
 
-Current LLMs cannot do this. They always produce an output. The architecture forces it.
+A good SRE doesn't deploy a speculative fix at 3am. They say: "I don't have enough information to act safely. Let me gather more data before we make this worse."
+
+This isn't caution — it's competence. The willingness to not-act when the cost of being wrong exceeds the cost of waiting is a hallmark of expertise. Novices act to demonstrate competence. Experts refuse to demonstrate it.
+
+**The mathematical problem:** The transformer architecture makes principled refusal structurally impossible. The softmax function forces output. The training objective (next-token prediction) rewards fluency over abstention. There is no mechanism for "I have insufficient basis for this prediction."
+
+This is not a prompting problem. It's a representation problem. The model's latent space does not distinguish between "I know this from evidence" and "I'm pattern-completing because I must produce something." Both produce equally fluent output.
+
+### 5. Structured knowledge that persists and compounds
+
+An expert doesn't start from zero each time. They carry structured knowledge:
+- **Episodic**: "Last time I saw this pattern in this patient, it was X"
+- **Semantic**: "This class of drugs interacts with that class"
+- **Procedural**: "When I see A + B, I always check C before concluding"
+
+Current LLMs have parametric knowledge (from training) and in-context knowledge (from the prompt). But they have no **session-persistent structured knowledge** that compounds over interactions. Every conversation starts fresh. Every triage starts without memory of the previous one.
+
+An expert oncologist seeing a patient for the 5th time doesn't re-read the entire history. They know: "Last visit we adjusted the dosing. Let me check if it worked." That's structured, persistent, compounding knowledge. Current architectures don't have it.
 
 ## Is an Expert a State or a Process?
 
-**Both.** An expert starts as a state (configured knowledge) and becomes a process (learning system).
+**Both, in sequence.**
 
-**Expert as state** — the Dreyfus "competent" level:
-- Configured with domain rules (scoring, compression, catalog)
-- Knows the domain topology (service dependencies, patient comorbidities)
-- Applies the right framework to the right question type
-- This is what our context engine does today
+An expert starts as a state — a configuration of knowledge and constraints:
+- Domain rules (what's important, what's dangerous, what's irrelevant)
+- Entity relationships (service dependencies, drug interactions, legal precedents)
+- Procedures (when I see X, do Y before Z)
 
-**Expert as process** — the Dreyfus "proficient" and "expert" levels:
-- Learns from each interaction (which triages were useful, which missed the mark)
-- Notices patterns across interactions (this service always fails because of X)
-- Adapts its own behavior (adjusts scoring weights, changes source priority)
-- Develops "intuition" — fast pattern matching based on accumulated experience
-- This is the ACE Reflector → Curator loop, the intelligence layer we've designed
+This is the "competent" level of the Dreyfus skill acquisition model. It's achievable through configuration.
 
-The trajectory: Configuration → Calibration → Learning → Expertise.
+An expert becomes a process — a system that improves through experience:
+- Notices patterns across cases ("this service always fails because of X")
+- Learns from corrections ("my last triage missed the root cause, I need to weight deploy data higher")
+- Develops calibrated intuition ("this *feels* like a Stripe issue" — based on accumulated pattern matching, not explicit rules)
 
-## The Constraint-Based Approach to "I Don't Know"
+This is the "proficient" and "expert" levels of Dreyfus. It requires learning loops, memory, and the ability to modify one's own behavior.
 
-Since we can't change the transformer architecture (it will always produce output), we need **external constraints that negate invalid response paths.** This is the engineering solution while the architecture catches up.
+The trajectory: **Configuration → Calibration → Learning → Expertise.**
 
-### What constraints can enforce
+## What Current LLMs Get Right
 
-Constraints are rules that evaluate the model's output (or intermediate state) and block or modify it when it violates domain invariants. Think of them as guardrails that are mathematically rigorous, not just prompt instructions.
+It's worth acknowledging what current models do well:
 
-### Three layers of constraints
+- **Pattern recognition across vast domains** — they've seen more medical literature, more code, more incident reports than any human expert
+- **Flexible reasoning** — they can follow complex instructions and reason over novel combinations of evidence
+- **Language generation** — they communicate findings in natural, accessible language
+- **Speed** — they produce a triage brief in seconds, not minutes
 
-**Layer 1: Pre-generation constraints (what the model sees)**
+These are not trivial. A model with the right context, the right constraints, and the right domain configuration can produce output that is useful to an expert, even if it is not itself an expert. This is the practical opportunity.
 
-These constrain the *input* to reduce the surface for hallucination:
+## The Gap: What's Missing
 
-- **Evidence-grounded context only.** If a claim isn't supported by the input evidence, the model shouldn't have a basis to make it. Our context engine does this — we only feed scored, compressed, quality-assessed evidence.
-- **Explicit negative context.** Tell the model what it DOESN'T have: "No deployment data available. No metrics source configured. saarthi-flask returned 0 lines." This gives the model the information it needs to refuse.
-- **Closed-world assumption in the prompt.** "Base your analysis ONLY on the evidence provided. If the evidence is insufficient to make a determination, say so explicitly. Do NOT infer information not present in the logs."
-
-**Layer 2: Structural output constraints (what the model produces)**
-
-These constrain the *output format* to force the model through checkpoints:
-
-- **Mandatory evidence citation.** For every claim in the triage, the model must cite a specific log line. Claims without citations are structurally invalid.
-
-```
-Required format:
-  Claim: [statement]
-  Evidence: [quoted log line or "INSUFFICIENT — cannot determine"]
-```
-
-If the model can't fill the Evidence field for a claim, the constraint forces it to write "INSUFFICIENT" — which IS the "I don't know."
-
-- **Confidence as a required field, not optional.**
-
-```
-For each finding, state:
-  Confidence: HIGH (multiple corroborating evidence lines)
-            | MEDIUM (single evidence line, consistent with context)
-            | LOW (inferred, no direct evidence)
-            | CANNOT_DETERMINE (insufficient data)
-```
-
-The model MUST classify each finding. This is a structural constraint — not a suggestion.
-
-- **Contradiction detection as a required step.**
-
-```
-Before your final summary, list any contradictions:
-  - Signal A says X, but Signal B says Y
-  - If no contradictions: "No contradictions detected"
-
-For each contradiction, state which signal you trust and why.
-```
-
-This forces the model to explicitly reason about conflicting evidence rather than silently averaging.
-
-**Layer 3: Post-generation validation (what gets through)**
-
-These are checks AFTER the model generates, before delivery:
-
-- **Citation verification.** Parse the output, extract cited log lines, verify they exist in the input context. If a citation is fabricated, flag or remove the claim.
-
-- **Confidence calibration check.** If the model says "HIGH confidence" but the quality assessment shows 0% source coverage, override to "LOW — quality assessment indicates missing data."
-
-- **Domain invariant checks.** Rules that are always true in the domain:
-  - Incident management: "If error_count is 0 and alert type is error_rate, the triage MUST flag this as a logging issue, not confirm no errors"
-  - Healthcare: "If a drug interaction exists between two medications in the patient's list, the summary MUST mention it, regardless of whether it's relevant to the current complaint"
-
-- **Negation rules.** Explicit rules that block certain response paths:
-
-```python
-NEGATION_RULES = [
-    # Never suggest a root cause without evidence
-    {
-        "if": "root_cause is stated",
-        "require": "at least one cited log line supports it",
-        "else": "rewrite as 'Possible root cause (unconfirmed): ...' "
-    },
-    # Never claim the system is healthy during an active alert
-    {
-        "if": "alert is active AND urgency is high",
-        "block": "claims that the service is operating normally",
-    },
-    # Never recommend an action that contradicts a known constraint
-    {
-        "if": "action suggested",
-        "check": "action does not conflict with domain rules",
-        "example": "don't suggest restarting production DB without explicit approval"
-    },
-]
-```
-
-### How constraints compose with context engineering
-
-```
-Input → Context Engine (Select, Compress, Score, Quality)
-    → Pre-generation constraints (closed world, explicit negatives)
-    → LLM generation
-    → Structural output constraints (citations, confidence, contradictions)
-    → Post-generation validation (verify citations, check invariants, apply negation rules)
-    → Validated output OR rejection ("I cannot produce a reliable triage")
-```
-
-The constraints don't replace the LLM's reasoning. They **bound it.** The model reasons freely within the bounds. When it tries to step outside (hallucinate, overclaim, skip uncertainty), the constraints catch it.
-
-This is analogous to how type systems work in programming: the programmer writes the logic, the type system catches the errors. The LLM writes the triage, the constraint system catches the hallucinations.
-
-## The Delta: What's Left
-
-| Capability | Context engineering | + Constraints | + Architecture change |
+| Property | Current LLMs | With context engineering | Full expert |
 |---|---|---|---|
-| Domain compression | ✓ Fully solved | | |
-| Self-knowledge (what it has) | ✓ Quality assessment | | |
-| Self-knowledge (what it lacks) | ✓ Gap detection | ✓ Explicit negatives | |
-| Principled refusal | Partial (prompt instruction) | ✓ Structural enforcement | ✓ Native epistemic state |
-| Judgment under ambiguity | Partial (prompt instruction) | ✓ Contradiction detection | ✓ Imprecise probabilities |
-| Calibrated confidence | Partial (prompt instruction) | ✓ Post-generation override | ✓ Evidential deep learning |
-| Learning from feedback | Not yet (v0.4+) | | |
-| Pattern accumulation | Not yet (v0.4+) | | |
+| Domain compression | Poor (attends to everything) | Strong (external selection + scoring) | Native (internal attention allocation) |
+| Self-knowledge (what it has) | None | Strong (quality assessment) | Native (epistemic state tracking) |
+| Self-knowledge (what it lacks) | None | Good (explicit gap detection) | Native (imprecise probabilities) |
+| Principled refusal | Cannot (softmax forces output) | Partial (prompt instruction + constraints) | Native (abstention mechanism) |
+| Judgment under ambiguity | Weak (pattern-matches most likely) | Moderate (contradiction detection) | Strong (meta-reasoning over evidence structure) |
+| Persistent knowledge | None (stateless) | Designed (memory layer, v0.4+) | Native (episodic + semantic memory) |
+| Calibrated confidence | Poor (confident when wrong) | Moderate (post-generation override) | Native (evidential deep learning) |
 
-**Context engineering + constraints gets us 85-90% of expert behavior.** The remaining 10-15% requires architectural innovation — models that natively represent epistemic uncertainty.
+**Context engineering + constraints gets 85-90% of expert behavior on structured tasks.** The remaining 10-15% requires architectural innovation.
 
-The 85-90% is buildable now. The 10-15% is the research frontier.
+## Implications
 
-## Implications for Saarthi
+1. **The 85-90% is buildable now** — and it's commercially valuable. A system that compresses domain data, assesses quality, enforces constraints, and delivers structured analysis is better than what any team has today for incident triage or clinical decision support.
 
-1. **Short-term (now):** Build the constraint layer into the framework. Mandatory citations, structural confidence, contradiction detection, post-generation validation. This is the highest-impact improvement for the least effort.
+2. **The 10-15% is the research frontier** — principled refusal, meta-reasoning under ambiguity, and calibrated confidence require models that natively represent what they know and don't know. This is where architectural innovation matters.
 
-2. **Medium-term (6-12 months):** Add the learning loop (ACE Reflector → Curator). The system learns which constraints fire most often (indicating systematic model weaknesses) and adjusts the context engineering to preempt them.
+3. **The bridge between them is the constraint layer** — structured output requirements, mandatory citation, domain invariant checking, and negation rules that bound the model's behavior within safe limits. Not guaranteed, but significantly safer than unconstrained generation.
 
-3. **Long-term (research):** Investigate evidential deep learning and energy-based models for generative tasks. Can we build a model that natively produces calibrated uncertainty? This is the PhD-level question.
-
-4. **The product insight:** The constraint layer is a SaaS differentiator. Open-source gets the context engine. The managed service gets the constraints (domain-specific invariants, citation verification, negation rules). This is hard to replicate because the constraints encode domain expertise.
+4. **Writing is a way of clarifying this for ourselves more than for the public.** But what we clarify can be shared — the problem definition, the gap analysis, the properties of expertise. The solutions are where the IP lives.
 
 ---
 
-*This document is a working definition, not a final answer. It should evolve as we build, test, and learn what works.*
+*Working document. To be compared with Rohan's independent definition and iterated.*

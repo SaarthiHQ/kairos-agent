@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>From LLM to Expert — Trajectory & Landscape</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.4;color:#1a1a1a;background:#0f172a;min-height:100vh}
+        .header{background:#0f172a;color:#fff;padding:20px 32px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e293b}
+        .header h1{font-size:1.3em;font-weight:800}
+        .header .sub{font-size:12px;color:#94a3b8}
+        .header .badge{background:#4f46e5;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:600;color:#fff}
+        .main{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 60px)}
+        @media(max-width:900px){.main{grid-template-columns:1fr}}
+
+        /* Left nav */
+        .nav{background:#1e293b;padding:20px 16px;overflow-y:auto;border-right:1px solid #334155}
+        .nav h2{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin:16px 0 8px}
+        .nav a{display:block;padding:6px 10px;border-radius:6px;font-size:12px;color:#94a3b8;text-decoration:none;margin-bottom:2px}
+        .nav a:hover,.nav a.active{background:#334155;color:#fff}
+        .nav .finding{font-size:10px;color:#f59e0b;font-weight:600;margin-top:2px}
+
+        /* Content */
+        .content{background:#f8fafc;padding:24px 32px;overflow-y:auto}
+        h2{font-size:18px;font-weight:800;color:#0f172a;margin:24px 0 12px;padding-bottom:8px;border-bottom:2px solid #e5e7eb}
+        h3{font-size:14px;font-weight:700;color:#0f172a;margin:16px 0 6px}
+        p{font-size:13px;color:#374151;margin-bottom:10px}
+        .small{font-size:11px;color:#6b7280}
+
+        /* Approach cards */
+        .approach{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px}
+        .approach .title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+        .approach h3{margin:0;font-size:14px}
+        .approach .coverage{display:flex;gap:4px}
+        .approach .dot{width:10px;height:10px;border-radius:50%;border:1px solid #d1d5db}
+        .dot.full{background:#059669;border-color:#059669}
+        .dot.half{background:#f59e0b;border-color:#f59e0b}
+        .dot.none{background:#fff}
+        .approach .tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+        .tag.us{background:#dbeafe;color:#1d4ed8}
+        .tag.industry{background:#fef3c7;color:#92400e}
+        .tag.research{background:#fce7f3;color:#9d174d}
+        .approach .desc{font-size:12px;color:#6b7280;margin-bottom:6px}
+        .approach .works{font-size:12px;color:#059669;font-weight:600}
+        .approach .fails{font-size:12px;color:#dc2626;font-weight:600}
+        .approach .insight{background:#f0f0ff;border-left:3px solid #4f46e5;padding:8px 10px;border-radius:0 6px 6px 0;font-size:11px;color:#374151;margin-top:8px}
+
+        /* Stage timeline */
+        .timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}
+        @media(max-width:900px){.timeline{grid-template-columns:1fr 1fr}}
+        .stage{border-radius:10px;padding:14px;position:relative}
+        .stage .num{font-size:32px;font-weight:800;opacity:.15;position:absolute;top:8px;right:12px}
+        .stage h3{font-size:13px;margin:0 0 2px;color:#fff}
+        .stage .when{font-size:10px;opacity:.7;margin-bottom:6px}
+        .stage p{font-size:11px;color:rgba(255,255,255,.8);margin-bottom:0}
+        .s1{background:#059669}
+        .s2{background:#0284c7}
+        .s3{background:#7c3aed}
+        .s4{background:#dc2626}
+
+        /* Comparison table */
+        .comp{width:100%;border-collapse:collapse;font-size:11px;margin:12px 0;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb}
+        .comp th{background:#0f172a;color:#fff;padding:8px;text-align:left;font-weight:600}
+        .comp td{padding:6px 8px;border-bottom:1px solid #f3f4f6}
+        .comp .y{color:#059669;font-weight:700}
+        .comp .p{color:#f59e0b;font-weight:600}
+        .comp .n{color:#d1d5db}
+        .comp tr.highlight td{background:#f0f0ff;font-weight:600}
+
+        /* Key findings */
+        .finding-box{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;margin:12px 0}
+        .finding-box h3{color:#dc2626;font-size:12px;margin:0 0 4px}
+        .finding-box p{font-size:12px;color:#374151;margin:0}
+
+        .insight-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;margin:12px 0}
+        .insight-box h3{color:#059669;font-size:12px;margin:0 0 4px}
+        .insight-box p{font-size:12px;color:#374151;margin:0}
+
+        /* Sources */
+        .sources{margin-top:20px;padding-top:16px;border-top:1px solid #e5e7eb}
+        .sources a{font-size:11px;color:#4f46e5;text-decoration:none;display:block;margin-bottom:4px}
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div><h1>From LLM to Expert</h1><span class="sub">Trajectory, landscape, and what's being tried</span></div>
+    <div style="display:flex;gap:12px;align-items:center">
+        <span class="badge">Internal Research</span>
+        <span class="sub">March 2026</span>
+    </div>
+</div>
+
+<div class="main">
+
+<!-- LEFT NAV -->
+<div class="nav">
+    <h2>Six Approaches</h2>
+    <a href="#fine-tuning">1. Fine-Tuning</a>
+    <a href="#rag">2. RAG</a>
+    <a href="#context-eng" class="active">3. Context Engineering</a>
+    <a href="#uq">4. Uncertainty Quantification</a>
+    <a href="#abstention">5. Abstention Training</a>
+    <a href="#neurosymbolic">6. Neuro-Symbolic AI</a>
+
+    <h2>Key Findings</h2>
+    <a href="#finding1"><span class="finding">Scaling doesn't help abstention</span></a>
+    <a href="#finding2"><span class="finding">Reasoning hurts refusal by 24%</span></a>
+    <a href="#finding3"><span class="finding">Small models beat frontier on UQ</span></a>
+    <a href="#finding4"><span class="finding">High-confidence hallucinations undetectable</span></a>
+
+    <h2>Trajectory</h2>
+    <a href="#stages">Four stages to expert</a>
+    <a href="#comparison">Comparison table</a>
+    <a href="#gap">What no one else does</a>
+    <a href="#sources">Sources</a>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<p>An LLM is a next-token predictor. An expert has calibrated self-knowledge, domain compression, judgment under ambiguity, principled refusal, and persistent knowledge. Six approaches are being tried to close the gap. None of them alone does it.</p>
+
+<!-- APPROACHES -->
+<h2>The Six Approaches</h2>
+
+<div class="approach" id="fine-tuning">
+    <div class="title-row">
+        <h3>1. Fine-Tuning — Change How the Model Behaves</h3>
+        <span class="tag industry">Industry standard</span>
+    </div>
+    <div class="desc">LoRA, QLoRA, DPO, RLHF. Adjusts weights on domain data for tone, format, safety patterns.</div>
+    <div class="works">Works for: behavior consistency, domain vocabulary, output format</div>
+    <div class="fails">Doesn't solve: hallucination (reduces frequency, not eliminated), epistemic awareness, genuine refusal</div>
+    <p class="small">2026 consensus: fine-tune for behavior, not knowledge. Don't rely on it for factual accuracy.</p>
+</div>
+
+<div class="approach" id="rag">
+    <div class="title-row">
+        <h3>2. RAG — Change What the Model Sees</h3>
+        <span class="tag industry">Industry standard</span>
+    </div>
+    <div class="desc">Vector search, BM25, hybrid retrieval, GraphRAG, re-ranking. Injects documents at inference time.</div>
+    <div class="works">Works for: current knowledge, citable sources, reduced hallucination (when answer is in context)</div>
+    <div class="fails">Doesn't solve: retrieval quality ceiling, no domain scoring, no compression, no quality assessment</div>
+    <div class="insight">Context engineering is what RAG becomes when you take it seriously. RAG gives you documents. CE gives you the right 50 lines, scored and structured for the specific question.</div>
+</div>
+
+<div class="approach" id="context-eng">
+    <div class="title-row">
+        <h3>3. Context Engineering — Systematic Input Engineering</h3>
+        <span class="tag us">Saarthi (built)</span>
+    </div>
+    <div class="desc">Multi-source fetch, domain scoring, compression, token budgets, prompt repetition, quality assessment.</div>
+    <div class="works">Works for: domain compression, partial self-knowledge, partial refusal, model tier arbitrage (24x cost reduction)</div>
+    <div class="fails">Doesn't solve: refusal is behavioral not structural, ambiguity judgment is prompt-dependent, no persistence</div>
+    <div class="insight">85-90% of expert behavior on structured tasks. The engineering approximation of expertise while architecture catches up.</div>
+</div>
+
+<div class="approach" id="uq">
+    <div class="title-row">
+        <h3>4. Uncertainty Quantification — Measure What the Model Knows</h3>
+        <span class="tag research">Active research</span>
+    </div>
+    <div class="desc">Semantic entropy (Nature 2024), evidential deep learning (Dirichlet outputs), behavioral calibration (Rewarding Doubt, Dec 2025).</div>
+    <div class="works">Works for: detecting when model is uncertain, calibrating expressed confidence with actual accuracy</div>
+    <div class="fails">Doesn't solve: high-confidence hallucinations (model is wrong AND certain), 5-10x compute cost for semantic entropy</div>
+    <div class="insight"><strong>Rewarding Doubt (Dec 2025):</strong> Smaller models trained with calibration-aware RL surpass frontier models on UQ. Calibration is a transferable meta-skill, decoupled from raw accuracy. Validates our thesis.</div>
+</div>
+
+<div class="approach" id="abstention">
+    <div class="title-row">
+        <h3>5. Abstention Training — Teach the Model to Refuse</h3>
+        <span class="tag research">Unsolved</span>
+    </div>
+    <div class="desc">AbstentionBench (Jun 2025), Know Your Limits survey (TACL 2025). Training models to say "I don't know."</div>
+    <div class="works">Works for: simple cases (obviously unanswerable questions)</div>
+    <div class="fails">Doesn't solve: reliable abstention at scale — no model reliably abstains across diverse question types</div>
+</div>
+
+<div id="finding1" class="finding-box">
+    <h3>AbstentionBench: Scaling doesn't help</h3>
+    <p>Larger models are NOT better at abstaining. And reasoning fine-tuning HURTS abstention — DeepSeek R1 shows a 24% drop in abstention vs its non-reasoning counterpart. Teaching models to think harder makes them LESS likely to say "I don't know."</p>
+</div>
+
+<div id="finding2" class="insight-box">
+    <h3>Implication for Saarthi</h3>
+    <p>If training the model to abstain doesn't work, and making it smarter makes it worse, then external constraint enforcement is not just a shortcut — it may be the ONLY reliable approach with current architectures. This validates our constraint layer strategy and the SLI hypothesis.</p>
+</div>
+
+<div class="approach" id="neurosymbolic">
+    <div class="title-row">
+        <h3>6. Neuro-Symbolic AI — Add Structure to the Model</h3>
+        <span class="tag research">Emerging (2026)</span>
+    </div>
+    <div class="desc">Neural perception + symbolic reasoning. Knowledge graphs, formal verification (TLA+, deontic logic), explicit constraint engines.</div>
+    <div class="works">Works for: constraint enforcement by construction, explainable reasoning, domain invariant preservation</div>
+    <div class="fails">Doesn't solve: brittle neural-symbolic interfaces, scaling cost, neural component still hallucinates (symbolic catches it post-hoc)</div>
+    <div class="insight"><strong>SLI goes further:</strong> Instead of running symbolic reasoning alongside the neural model, embed constraints INTO the latent space. Avoids brittle interfaces, maintains differentiability. h = [h_text, h_domain, h_constraints].</div>
+</div>
+
+<!-- COMPARISON TABLE -->
+<h2 id="comparison">Expert Property Coverage</h2>
+
+<table class="comp">
+    <thead>
+        <tr><th>Approach</th><th>Compression</th><th>Self-knowledge</th><th>Ambiguity</th><th>Refusal</th><th>Persistence</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>Fine-tuning</td><td class="p">Partial</td><td class="n">None</td><td class="n">None</td><td class="n">Mimicry</td><td class="n">Frozen</td></tr>
+        <tr><td>RAG</td><td class="p">Partial</td><td class="n">None</td><td class="n">None</td><td class="n">None</td><td class="n">None</td></tr>
+        <tr class="highlight"><td>Context Engineering</td><td class="y">Strong</td><td class="p">Moderate</td><td class="p">Weak</td><td class="p">Moderate</td><td class="n">None</td></tr>
+        <tr><td>Uncertainty Quantification</td><td class="n">None</td><td class="y">Strong</td><td class="n">None</td><td class="p">Moderate</td><td class="n">None</td></tr>
+        <tr><td>Abstention Training</td><td class="n">None</td><td class="p">Moderate</td><td class="n">None</td><td class="p">Unsolved</td><td class="n">None</td></tr>
+        <tr><td>Neuro-Symbolic</td><td class="n">Weak</td><td class="p">Moderate</td><td class="p">Moderate</td><td class="y">Strong</td><td class="n">Weak</td></tr>
+        <tr class="highlight"><td><strong>Combined (Saarthi trajectory)</strong></td><td class="y"><strong>Strong</strong></td><td class="y"><strong>Strong</strong></td><td class="p"><strong>Moderate</strong></td><td class="y"><strong>Strong</strong></td><td class="p"><strong>Planned</strong></td></tr>
+    </tbody>
+</table>
+
+<p class="small">No single approach covers all five properties. The trajectory combines context engineering + constraints + calibration + memory + SLI.</p>
+
+<!-- STAGES -->
+<h2 id="stages">The Four Stages to Expert</h2>
+
+<div class="timeline">
+    <div class="stage s1">
+        <div class="num">1</div>
+        <h3>External Intelligence</h3>
+        <div class="when">Now (built)</div>
+        <p>Context engineering + structural constraints. 85-95% of expert behavior. Works with any model.</p>
+    </div>
+    <div class="stage s2">
+        <div class="num">2</div>
+        <h3>Calibrated Intelligence</h3>
+        <div class="when">6-12 months</div>
+        <p>Behavioral calibration (Rewarding Doubt) + persistent memory. Confidence correlates with accuracy.</p>
+    </div>
+    <div class="stage s3">
+        <div class="num">3</div>
+        <h3>Constrained Intelligence</h3>
+        <div class="when">12-24 months</div>
+        <p>Constraint projection layer. Domain invariants in the forward pass. Invalid outputs probabilistically suppressed.</p>
+    </div>
+    <div class="stage s4">
+        <div class="num">4</div>
+        <h3>Architecturally Expert</h3>
+        <div class="when">2+ years</div>
+        <p>Factorized latent: h = [h_text, h_domain, h_constraints]. Invalid outputs structurally unreachable. Native "I don't know."</p>
+    </div>
+</div>
+
+<!-- GAP -->
+<h2 id="gap">What No One Else Is Doing</h2>
+
+<div class="approach">
+    <h3>1. No unified framework across context engineering + constraints + domain specificity</h3>
+    <div class="desc">LangChain does orchestration. LlamaIndex does retrieval. Mem0 does memory. Nobody does domain-aware scoring + compression + quality assessment + constraint enforcement as a single pipeline.</div>
+</div>
+<div class="approach">
+    <h3>2. No cross-domain extraction of common patterns</h3>
+    <div class="desc">Everyone is vertical. We apply the same framework to healthcare AND incident management, extracting the horizontal discipline.</div>
+</div>
+<div class="approach">
+    <h3>3. No latent-space constraint embedding for generative models</h3>
+    <div class="desc">Evidential deep learning does it for classification. Neuro-symbolic uses external components. SLI proposes native, end-to-end differentiable constraint embedding.</div>
+</div>
+<div class="approach">
+    <h3>4. AbstentionBench validates our architectural thesis</h3>
+    <div class="desc">Reasoning models are WORSE at abstention. If making models smarter makes them worse at knowing limits, the solution must be structural. That's SLI.</div>
+</div>
+
+<!-- SOURCES -->
+<div class="sources" id="sources">
+    <h2>Sources</h2>
+    <a href="https://arxiv.org/abs/2506.09038">AbstentionBench: Reasoning LLMs Fail on Unanswerable Questions — Jun 2025</a>
+    <a href="https://arxiv.org/abs/2407.18418">Know Your Limits: A Survey of Abstention in LLMs — TACL 2025</a>
+    <a href="https://arxiv.org/abs/2512.19920">Rewarding Doubt: Behaviorally Calibrated RL — Dec 2025</a>
+    <a href="https://www.nature.com/articles/s41586-024-07421-0">Semantic Entropy for Hallucination Detection — Nature 2024</a>
+    <a href="https://arxiv.org/abs/1806.01768">Evidential Deep Learning (Dirichlet) — NeurIPS 2018</a>
+    <a href="https://arxiv.org/abs/2510.18322">Flexible Evidential Deep Learning — Oct 2025</a>
+    <a href="https://arxiv.org/abs/2406.15927">Semantic Entropy Probes — 2024</a>
+    <a href="https://arxiv.org/abs/2510.12040">Uncertainty Quantification for Hallucination Detection — Oct 2025</a>
+    <a href="https://arxiv.org/abs/2502.11269">Neuro-Symbolic Architectures for Generative AI — Feb 2025</a>
+    <a href="https://arxiv.org/abs/2601.09929">Hallucination Detection and Mitigation Survey — Jan 2026</a>
+    <a href="https://arxiv.org/abs/2510.04618">ACE: Agentic Context Engineering — ICLR 2026</a>
+    <a href="https://arxiv.org/abs/2510.06265">LLM Hallucination Comprehensive Survey — Oct 2025</a>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main -->
+
+</body>
+</html>
